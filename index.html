@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探究COVID-19 Mpro：自主學習計畫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn.active { 
+            background-color: #0ea5e9; /* sky-500 */
+            color: white;
+        }
+        /* Custom scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; /* slate-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #38bdf8; /* sky-400 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0ea5e9; /* sky-500 */
+        }
+        .details-marker::before {
+            content: '▶ ';
+            font-size: 0.8em;
+            margin-right: 4px;
+        }
+        details[open] > summary .details-marker::before {
+            content: '▼ ';
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; 
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        th, td {
+            padding: 0.75rem;
+            border-width: 1px;
+            border-color: #334155; /* slate-700 */
+        }
+        th {
+            background-color: #1e293b; /* slate-800 */
+        }
+        .iframe-container {
+            width: 100%;
+            height: 80vh; /* Adjust as needed */
+            border: none;
+        }
+        /* Placeholder Comments */
+        /* */
+        /* */
+        /* <!-- Visualization & Content Choices:
+            - 首頁: Static text (HTML/Tailwind). Goal: Introduction.
+            - 學習規畫: Nested collapsible lists (HTML/Tailwind/JS), checkboxes (HTML/JS), progress bars (HTML/CSS/JS). Goal: Detailed planning and progress tracking. Interaction: Expand/collapse, check tasks.
+            - 學習評量: Multiple choice forms (HTML/JS), dynamic result display (HTML/JS), score trend chart (Chart.js Canvas). Goal: Self-assessment. Interaction: Answer quizzes, view scores and trends.
+            - 學習內容: Interactive HTML table (HTML/JS). Goal: Consolidated view of all tasks. Interaction: Sort, filter, export CSV.
+            - 心得反思: Static text (HTML/Tailwind). Goal: Reflection.
+            - 參考資料: Static list (HTML/Tailwind). Goal: Resources.
+            - 學習資訊圖表: Iframe embedding external HTML. Goal: Visual summary.
+            - 語音摘要: HTML5 audio player. Goal: Auditory summary.
+            - Justification: Chosen methods provide direct, interactive access to the plan's components, aligning with user requirements for tracking, assessment, and review within a single SPA. NO SVG/Mermaid used. --> */
+        /* */
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-200 min-h-screen">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-sky-400">探究COVID-19冠狀病毒主蛋白酶(Mpro)：從活性中心結構到抑制劑的虛擬開發</h1>
+            <p class="text-slate-400 mt-2">自主學習計畫互動網頁</p>
+        </header>
+
+        <nav class="mb-8 flex flex-wrap justify-center gap-2">
+            <button data-tab="tab1" class="tab-btn active bg-slate-700 hover:bg-sky-600 text-slate-200 font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200">1. 首頁</button>
+            <button data-tab="tab2" class="tab-btn bg-slate-700 hover:bg-sky-600 text-slate-200 font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200">2. 學習規畫</button>
+            <button data-tab="tab3" class="tab-btn bg-slate-700 hover:bg-sky-600 text-slate-200 font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200">3. 學習評量</button>
+            <button data-tab="tab4" class="tab-btn bg-slate-700 hover:bg-sky-600 text-slate-200 font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200">4. 學習內容</button>
+            <button data-tab="tab5" class="tab-btn bg-slate-700 hover:bg-sky-600 text-slate-200 font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200">5. 心得反思</button>
+            <button data-tab="tab6" class="tab-btn bg-slate-700 hover:bg-sky-600 text-slate-200 font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200">6. 參考資料</button>
+            <button data-tab="tab7" class="tab-btn bg-slate-700 hover:bg-sky-600 text-slate-200 font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200">7. 學習資訊圖表</button>
+            <button data-tab="tab8" class="tab-btn bg-slate-700 hover:bg-sky-600 text-slate-200 font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200">8. 語音摘要</button>
+        </nav>
+
+        <main>
+            <div id="tab1" class="tab-content active bg-slate-800 p-6 rounded-lg shadow-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-sky-400 border-b border-slate-700 pb-2">1. 首頁 (Homepage)</h2>
+                <div class="space-y-6 text-slate-300">
+                    <section>
+                        <h3 class="text-xl font-semibold mb-3 text-sky-300">1.1. 研究動機與背景 (Motivation and Background)</h3>
+                        <p class="mb-2">自2019年底以來，新型冠狀病毒肺炎 (COVID-19) 在全球範圍內造成了前所未有的公共衛生危機與社會經濟衝擊。面對此一嚴峻挑戰，除了疫苗的開發與普及，尋找有效的抗病毒治療藥物始終是科學研究的重點。在眾多潛在的藥物靶點中，SARS-CoV-2病毒的主蛋白酶 (Main Protease, Mpro)，亦稱為3C樣蛋白酶 (3C-like protease, 3CLpro)，因其在病毒複製週期中的關鍵角色而備受關注。</p>
+                        <p class="mb-2">Mpro是病毒複製過程中不可或缺的蛋白水解酶。病毒進入宿主細胞後，其RNA基因組會轉譯產生兩條長的多聚蛋白前體 (polyprotein precursors, pp1a 和 pp1ab)。Mpro負責將這兩條多聚蛋白精確切割成多個具有功能的非結構蛋白 (non-structural proteins, nsps)，這些nsps是病毒複製和轉錄機器組裝所必需的 [1]。若Mpro的活性受到抑制，病毒的複製週期將被阻斷，從而達到抗病毒的效果。</p>
+                        <p class="mb-2">選擇Mpro作為藥物開發靶點具有顯著的科學合理性。首先，Mpro在冠狀病毒中高度保守，這意味著針對SARS-CoV-2 Mpro開發的抑制劑可能對其他冠狀病毒也具有潛在療效。其次，人體細胞內缺乏與Mpro同源性高的蛋白酶，因此，針對Mpro的抑制劑預期會有較低的宿主細胞毒性及較少的副作用 [1]。這些特性使得Mpro成為一個極具吸引力的抗COVID-19藥物設計靶標。</p>
+                        <p>個人而言，我對病毒學、藥物化學以及計算生物學的交叉領域抱有濃厚的興趣。透過本次自主學習，期望能深入了解COVID-19的分子致病機制，並初步探索現代藥物開發的前沿技術，特別是計算機輔助藥物設計中的虛擬篩選方法 [2]。這不僅是對個人科學素養的提升，更是對未來投身醫學研究、為人類健康貢獻心力的初步嘗試。儘管深知此主題涉及深奧的專業知識，但我相信透過系統性的學習與不懈的努力，定能克服困難，從中獲益。</p>
+                    </section>
+                    <section>
+                        <h3 class="text-xl font-semibold mb-3 text-sky-300">1.2. 研究目標 (Research Objectives)</h3>
+                        <p class="mb-2">本自主學習計畫設定以下四大研究目標：</p>
+                        <ul class="list-disc list-inside space-y-1 pl-4">
+                            <li><strong>目標1：知識建構 (Knowledge Acquisition)</strong>
+                                <ul class="list-circle list-inside space-y-1 pl-6 text-sm text-slate-400">
+                                    <li>系統學習細胞生物學、病毒學基礎，特別是與病毒感染相關的分子機制。</li>
+                                    <li>深入理解SARS-CoV-2 Mpro的分子結構，包括其三維摺疊、活性位點的組成 (特別是Cys145-His41催化二聯體) 以及底物結合區域的特徵 [1]。</li>
+                                    <li>掌握Mpro的催化反應機制，了解其如何切割病毒多聚蛋白。</li>
+                                    <li>學習酶抑制的基本原理，以及藥物設計的基本概念與策略。</li>
+                                    <li>理解基於結構的藥物設計 (Structure-Based Drug Design, SBDD) 中虛擬藥物篩選的完整流程與核心思想 [2, 3]。</li>
+                                </ul>
+                            </li>
+                            <li><strong>目標2：技能培養 (Skill Development)</strong>
+                                <ul class="list-circle list-inside space-y-1 pl-6 text-sm text-slate-400">
+                                    <li>熟練使用生物資訊學資料庫，例如蛋白質資料庫 (Protein Data Bank, PDB)，進行蛋白質結構資訊的檢索、下載與初步分析 [4, 5]。</li>
+                                    <li>掌握至少一種分子視覺化軟體 (如PyMOL或UCSF ChimeraX) 的基本操作，能夠展示、分析蛋白質及其與配體結合的結構特徵 [6, 7]。</li>
+                                    <li>學習並掌握分子對接軟體 (如AutoDock Vina) 的使用方法，包括受體與配體的準備、對接參數的設定、對接任務的執行 [8, 9, 10]。</li>
+                                    <li>培養分析與解釋分子對接結果的能力，例如評估結合親和力、觀察結合模式與關鍵相互作用。</li>
+                                </ul>
+                            </li>
+                            <li><strong>目標3：實作體驗 (Practical Experience)</strong>
+                                <ul class="list-circle list-inside space-y-1 pl-6 text-sm text-slate-400">
+                                    <li>以SARS-CoV-2 Mpro為靶點，實際執行一次小規模的虛擬篩選流程，從一個小型化合物資料庫中篩選潛在的抑制劑。</li>
+                                    <li>體驗從靶點結構準備、配體資料庫處理、分子對接到結果分析的完整計算藥物開發環節。</li>
+                                </ul>
+                            </li>
+                            <li><strong>目標4：科研素養 (Scientific Literacy & Thinking)</strong>
+                                <ul class="list-circle list-inside space-y-1 pl-6 text-sm text-slate-400">
+                                    <li>透過文獻閱讀與獨立思考，培養科學研究的批判性思維與問題解決能力。</li>
+                                    <li>學習如何規劃並管理一個為期數月的自主研究項目，提升時間管理與自我驅動能力。</li>
+                                    <li>增強對科學論文的閱讀理解能力，並學習如何從中提取關鍵資訊。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p class="mt-2 text-sm text-slate-400">這些目標的設定，旨在確保學習過程既有理論深度，也有實踐操作，從而全面提升對研究主題的理解和相關科研技能。知識的獲取是技能培養的基礎，而技能的熟練運用則能更好地完成實作體驗，最終內化為科研素養的提升。</p>
+                    </section>
+                    <section>
+                        <h3 class="text-xl font-semibold mb-3 text-sky-300">1.3. 預期學習成效與收穫 (Expected Learning Outcomes and Gains)</h3>
+                        <p class="mb-2">完成本自主學習計畫後，預期能達成以下學習成效與個人收穫：</p>
+                        <ul class="list-disc list-inside space-y-1 pl-4">
+                            <li><strong>專業知識深化：</strong> 對SARS-CoV-2這一重要人類病原體的關鍵藥物靶點Mpro，建立起堅實的分子層面認知，包括其結構生物學特性與催化功能。</li>
+                            <li><strong>實用技能掌握：</strong> 獲得生物資訊學資料庫查詢、分子視覺化分析以及分子對接模擬等計算生物學工具的實際操作經驗，這些技能在現代生物醫學研究中應用廣泛。</li>
+                            <li><strong>跨學科視野拓展：</strong> 體認到現代藥物開發是生物學、化學、藥學與計算機科學等多學科交叉融合的成果，培養跨領域學習的興趣與能力。</li>
+                            <li><strong>分析與思辨能力提升：</strong> 透過對文獻資料的研讀、實驗數據的分析以及研究問題的思考，有效提升科學分析能力與批判性思辨能力。</li>
+                            <li><strong>學術成果展現：</strong> 完成一份內容詳實、結構完整的自主學習計畫報告，不僅能作為大學申請的有力佐證材料，展現個人的學習主動性、研究潛力與學術嚴謹性，更能為未來的學術報告撰寫打下基礎。</li>
+                            <li><strong>科研興趣激發：</strong> 透過親身體驗藥物開發的初步環節，更深入地了解醫學研究的挑戰性與魅力所在，有助於堅定未來在醫學領域深造的志向。</li>
+                            <li><strong>科學表達能力：</strong> 能夠清晰、準確地闡述複雜的科學概念與研究成果，提升科學溝通與表達能力。</li>
+                        </ul>
+                        <p class="mt-2 text-sm text-slate-400">此計畫不僅是對特定科學問題的探究，更是一次綜合能力的鍛鍊。預期透過此過程，能為未來進入醫學院學習以及從事相關研究工作奠定初步但重要的基礎。</p>
+                    </section>
+                </div>
+            </div>
+
+            <div id="tab2" class="tab-content bg-slate-800 p-6 rounded-lg shadow-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-sky-400 border-b border-slate-700 pb-2">2. 學習規畫 (Learning Plan)</h2>
+                <div class="space-y-6 text-slate-300">
+                    <section>
+                        <h3 class="text-xl font-semibold mb-3 text-sky-300">2.1. 計畫總覽 (Project Overview)</h3>
+                        <ul class="list-disc list-inside space-y-1 pl-4">
+                            <li><strong>研究主題 (Research Topic):</strong> 探究COVID-19冠狀病毒主蛋白酶(Mpro)：從活性中心結構到抑制劑的虛擬開發</li>
+                            <li><strong>計畫期程 (Project Duration):</strong> 2025年9月1日 至 2026年1月15日 (共4.5個月，約19.5週)</li>
+                            <li><strong>總體目標 (Overall Goal):</strong> 完成一份關於SARS-CoV-2 Mpro結構功能分析及虛擬抑制劑開發的自主學習報告，並具備相關基礎知識與實作技能，最終以一個深色模式(Dark Mode)的網頁應用程式形式呈現，並能部署於GitHub Pages。</li>
+                            <li><strong>學習方式 (Learning Method):</strong> 以自主學習為主，結合：
+                                <ul class="list-circle list-inside space-y-1 pl-6 text-sm text-slate-400">
+                                    <li>指定教科書章節與學術文獻研讀</li>
+                                    <li>線上課程、教學影片與軟體操作教程學習</li>
+                                    <li>生物資訊學資料庫與分子模擬軟體的實際操作練習</li>
+                                    <li>實驗數據的整理、分析與解讀</li>
+                                    <li>定期的自我評量以檢視學習成效</li>
+                                    <li>撰寫研究日誌記錄學習進程與遇到的問題，並進行心得反思</li>
+                                </ul>
+                            </li>
+                            <li><strong>成果形式 (Output Format):</strong> 一個包含本自主學習計畫所有指定頁籤內容的網頁應用程式。該應用程式需具備進度追蹤功能，並能將追蹤結果彙整顯示或輸出。</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3 class="text-xl font-semibold mb-3 text-sky-300">整體進度</h3>
+                        <div class="w-full bg-slate-700 rounded-full h-4 mb-4">
+                            <div id="overallProgressBar" class="bg-sky-500 h-4 rounded-full text-xs font-medium text-sky-100 text-center p-0.5 leading-none" style="width: 0%">0%</div>
+                        </div>
+                        <div class="flex justify-between mb-4">
+                            <button id="exportProgressBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm">匯出進度 (JSON)</button>
+                            <div>
+                                <label for="importProgressInput" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm cursor-pointer">匯入進度 (JSON)</label>
+                                <input type="file" id="importProgressInput" class="hidden" accept=".json">
+                            </div>
+                        </div>
+                    </section>
+                    <section id="learningPlanDetails" class="space-y-4">
+                        <h3 class="text-xl font-semibold mb-3 text-sky-300">2.2. 各階段學習規劃 (Phase-by-Phase Learning Plan)</h3>
+                        
+                    </section>
+                </div>
+            </div>
+
+            <div id="tab3" class="tab-content bg-slate-800 p-6 rounded-lg shadow-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-sky-400 border-b border-slate-700 pb-2">3. 學習評量 (Learning Assessment)</h2>
+                <div class="space-y-6 text-slate-300">
+                    <p class="mb-4">為確保學習效果並及時發現知識掌握的薄弱環節，本自主學習計畫將在每個主要學習階段 (Phase 1至Phase 4) 結束後進行一次學習評量。共設計四份月度測驗卷，每份測驗卷包含10道選擇題，題目內容緊密圍繞當月學習的核心知識點和技能要求。</p>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-3 text-sky-300">歷次測驗成績趨勢</h3>
+                        <div class="chart-container bg-slate-700 p-4 rounded-lg shadow-md">
+                            <canvas id="quizScoreChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div id="quizContainer" class="space-y-8">
+                        
+                    </div>
+                    <div id="quizAnalysisContainer" class="mt-6 space-y-4">
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab4" class="tab-content bg-slate-800 p-6 rounded-lg shadow-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-sky-400 border-b border-slate-700 pb-2">4. 學習內容 (Learning Content)</h2>
+                <div class="space-y-6 text-slate-300">
+                    <h3 class="text-xl font-semibold mb-3 text-sky-300">4.1. 每日學習任務總表 (Consolidated Daily Learning Tasks Table)</h3>
+                    <p class="mb-4">本頁籤將以一個交互式的網頁表格形式，彙總呈現從2025年9月1日至2026年1月15日整個自主學習計畫期間的全部每日學習任務。此表格旨在為學習者提供一個清晰、便捷的每日學習指引和進度查閱工具。</p>
+                    <div class="flex flex-wrap gap-4 mb-4">
+                        <div>
+                            <label for="filterPhase" class="block text-sm font-medium text-slate-400">篩選階段:</label>
+                            <select id="filterPhase" class="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-slate-700 border-slate-600 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm rounded-md">
+                                <option value="">所有階段</option>
+                                
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterWeek" class="block text-sm font-medium text-slate-400">篩選週次:</label>
+                            <select id="filterWeek" class="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-slate-700 border-slate-600 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm rounded-md">
+                                <option value="">所有週次</option>
+                                
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterStatus" class="block text-sm font-medium text-slate-400">篩選進度:</label>
+                            <select id="filterStatus" class="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-slate-700 border-slate-600 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm rounded-md">
+                                <option value="">所有進度</option>
+                                <option value="completed">已完成</option>
+                                <option value="pending">未完成</option>
+                            </select>
+                        </div>
+                         <button id="exportCsvBtn" class="self-end bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm">匯出CSV</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="learningContentTable" class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-300 uppercase">
+                                <tr>
+                                    <th scope="col" class="cursor-pointer" data-sort="date">日期 ↕</th>
+                                    <th scope="col" class="cursor-pointer" data-sort="phase">階段 ↕</th>
+                                    <th scope="col" class="cursor-pointer" data-sort="week">週次 ↕</th>
+                                    <th scope="col" class="cursor-pointer" data-sort="day">天次 ↕</th>
+                                    <th scope="col">學習任務</th>
+                                    <th scope="col">學習目標</th>
+                                    <th scope="col">參考資料/連結</th>
+                                    <th scope="col" class="cursor-pointer" data-sort="status">進度 ↕</th>
+                                </tr>
+                            </thead>
+                            <tbody id="learningContentTableBody">
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab5" class="tab-content bg-slate-800 p-6 rounded-lg shadow-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-sky-400 border-b border-slate-700 pb-2">5. 心得反思 (Reflections)</h2>
+                <div class="space-y-6 text-slate-300 prose prose-invert max-w-none prose-p:text-slate-300 prose-strong:text-sky-300 prose-headings:text-sky-400 prose-ul:text-slate-300 prose-li:marker:text-sky-400">
+                    <h3 class="text-xl font-semibold mb-3 text-sky-300">5.1. 研究心得與學習反思 (Research Experience and Learning Reflections)</h3>
+                    <p>在為期四個半月的「探究COVID-19冠狀病毒主蛋白酶(Mpro)：從活性中心結構到抑制劑的虛擬開發」自主學習計畫即將畫上句點之際，回首這段旅程，心中充滿了挑戰的艱辛與收穫的喜悅。這不僅是一次知識的深度探索，更是一場對自我學習能力、時間管理和科研思維的全面錘鍊。</p>
+                    <h4>一、 初始動機與期望回顧：從憧憬到實踐的轉變</h4>
+                    <p>最初選擇此主題，源於對COVID-19疫情的深切關注以及對藥物開發這一神奇領域的無限向往。期望能透過此計畫，揭開病毒致病的微觀面紗，並初步體驗科學家如何運用智慧與技術對抗疾病。計畫開始時，對於能否獨立完成如此專業的內容，心中不無忐忑。如今，當我能夠相對清晰地闡述Mpro的結構功能，並實際操作分子對接軟體時，那份從抽象概念到具體實踐的轉變，帶來了遠超預期的成就感。雖然過程中對某些深奧理論的理解仍有待加深，但整體而言，計畫的完成度與最初的期望基本吻合，甚至在技能掌握的廣度上有所超越。</p>
+                    <h4>二、 知識與技能的成長：從陌生到熟悉的跨越</h4>
+                    <p>在知識層面，最大的收穫莫過於對SARS-CoV-2 Mpro這一關鍵藥物靶點的系統性認知。從其作為半胱氨酸蛋白酶的催化機制，特別是Cys145-His41催化二聯體的核心作用 [1]，到底物結合口袋的特異性，再到其在病毒複製週期中不可或缺的地位，這些知識點的串聯，讓我對病毒的「狡猾」與生命的精巧有了更深的體會。此外，對酶抑制劑的分類、作用原理以及Nirmatrelvir等代表性Mpro抑制劑的設計策略 [1, 22] 的學習，也為理解藥物如何發揮作用奠定了基礎。</p>
+                    <p>技能方面，從零開始學習使用PDB資料庫檢索蛋白質結構 [4, 5]，到運用PyMOL/ChimeraX進行分子視覺化分析 [6, 7]，再到配置參數並執行AutoDock Vina進行分子對接 [8, 9]，每一步都是新的挑戰。最具挑戰性的莫過於初次接觸分子對接的參數設定與結果解讀。面對Vina輸出的結合能數據和多個構象，起初感到茫然。透過反覆閱讀教程、分析範例、並結合視覺化軟體觀察相互作用，才逐漸理解了結合親和力 (Affinity) 的意義以及如何從眾多構象中篩選出最合理的結合模式。這個克服困難的過程，極大地增強了我的學習信心。</p>
+                    <h4>三、 研究過程中的亮點與困難：探索之路的起伏</h4>
+                    <p>整個學習過程中，最有成就感的階段無疑是Phase 4的虛擬抑制劑開發實作。當第一次成功運行AutoDock Vina，並在PyMOL中看到自己選擇的小分子與Mpro活性位點形成預期的氫鍵和疏水作用時，那份喜悅難以言表。這讓我真切感受到計算工具在藥物發現中的強大潛力。</p>
+                    <p>困難也如影隨形。最大的瓶頸出現在理解Mpro抑制劑的複雜設計策略，如PROTACs或變構抑制劑等前沿概念 [1]。這些內容往往涉及更深的有機化學和藥物化學知識，對於高中階段的我而言，理解起來頗為吃力。我的解決方法是，首先確保掌握核心概念，對於過於艱深的細節，則以了解其原理和應用方向為主，不強求完全吃透，同時記錄下來作為未來深入學習的目標。此外，部分英文文獻的閱讀也帶來一定挑戰，需要藉助翻譯工具並花費更多時間研讀。</p>
+                    <h4>四、 對科學研究的體悟：嚴謹與創新的交織</h4>
+                    <p>這次自主學習讓我對科學研究的本質有了更真切的體悟。科學研究遠非一蹴可幾，它充滿了嚴謹的邏輯推理、細緻的實驗操作 (即使是虛擬的)、以及對結果的審慎分析。一個參數的微小調整，都可能影響最終的模擬結果。同時，我也看到了科學研究中創新思維的重要性，例如科學家們針對Mpro設計出多種巧妙的抑制策略以應對病毒突變和耐藥性問題 [1]。研究過程也並非總是一帆風順，遇到問題、分析問題、解決問題是常態，這需要極大的耐心和毅力。</p>
+                    <p>對藥物開發的複雜性和長期性，我有了更深刻的認識。從一個有潛力的靶點確認，到一個安全有效的藥物最終上市，需要經歷漫長而艱辛的過程，涉及無數科學家的協同努力和巨額的資源投入 [2, 24]。虛擬篩選雖然能加速早期發現，但也僅僅是萬里長征的第一步。</p>
+                    <h4>五、 時間管理與自主學習能力的提升：成長的印記</h4>
+                    <p>在長達四個半月的時間裡，如何合理規劃每日、每週、每月的學習任務，是一項重要的考驗。我嘗試使用任務分解法，將大目標拆解為小任務，並利用進度追蹤功能來監控完成情況。遇到困難時，學會了主動查閱更多補充資料，或嘗試從不同角度理解問題，這極大地提升了我的自主學習能力和信息檢索能力。這次經歷證明，只要有清晰的目標和持之以恆的努力，即使是複雜的課題也能逐步攻克。</p>
+                    <h4>六、 未來展望與應用：夢想的啟航</h4>
+                    <p>這次自主學習的成果，無疑為我申請醫學系增添了有力的學術背景。它不僅展現了我對生物醫學領域的濃厚興趣和學習潛力，也證明了我具備獨立開展研究項目的能力。更重要的是，它讓我對計算生物學和生物資訊學在現代醫學研究中的應用產生了極大熱情。未來，我希望能更深入地學習結構生物學、藥物設計原理以及更高級的分子模擬技術。</p>
+                    <p>從這次經驗中學到的系統性學習方法、問題解決策略以及對科研的初步理解，將對我未來的學業生涯乃至人生道路產生深遠影響。無論將來是否直接從事藥物研發，這種探究精神和實證態度都將是我寶貴的財富。</p>
+                    <h4>七、 對主題的總結性看法：敬畏與希望並存</h4>
+                    <p>完成這項研究後，我對「COVID-19冠狀病毒主蛋白酶的活性中心與抑制劑開發」這一主題的看法更加立體。Mpro作為一個精巧的分子機器，其結構與功能的完美統一令人驚嘆。同時，針對它的抑制劑開發也展現了人類智慧在對抗疾病中的不懈追求。儘管病毒不斷變異帶來新的挑戰，但科學家們總能找到新的應對策略。這讓我對科學的力量充滿敬畏，也對人類最終戰勝疫情抱有堅定希望。</p>
+                    <p>總之，這次自主學習是一次寶貴的成長經歷。它不僅讓我收穫了知識與技能，更點燃了我對科學探索的熱情，堅定了我未來投身醫學事業的決心。</p>
+                </div>
+            </div>
+
+            <div id="tab6" class="tab-content bg-slate-800 p-6 rounded-lg shadow-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-sky-400 border-b border-slate-700 pb-2">6. 參考資料 (References)</h2>
+                <div class="space-y-6 text-slate-300">
+                    <h3 class="text-xl font-semibold mb-3 text-sky-300">6.1. 文獻列表 (Literature List)</h3>
+                    <p class="mb-2">在本自主學習計畫中，參考了以下學術文獻、教學資源、軟體手冊及資料庫。所有連結在報告撰寫時均確認有效。</p>
+                    <section>
+                        <h4 class="text-lg font-semibold mb-2 text-sky-200">核心研究論文與綜述 (Key Research Papers and Reviews):</h4>
+                        <ul class="list-decimal list-inside space-y-2 pl-4 text-sm">
+                            <li>谷漫玉, 等. (2024). SARS-CoV-2 主蛋白酶耐药机制与抗耐药性药物化学策略. *中国药科大学学报, 55*(9), 頁碼待補充 (若已知). (主要參考文獻，涵蓋Mpro結構、功能、抑制劑策略及耐藥機制) ([1])</li>
+                            <li>劉彬, 秦照玲, 戚中田. (2020). 新型冠状病毒基因组结构与蛋白功能. *微生物与感染, 15*(1), 52-57. (冠狀病毒基因組與蛋白功能概述) ([13])</li>
+                            <li>梁博煌. (2020). 新冠肺炎新藥研發的曙光，臺灣團隊找到抑制病毒的蛋白酶抑制劑. 中央研究院訊息發布. (台灣團隊Mpro抑制劑研究報導) <a href="https://www.sinica.edu.tw/News_Content/55/767" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[連結]</a> ([14, 15])</li>
+                            <li>鄒宗珮, 蘇家彬. (2020). COVID-19 藥物治療發展. *疫情報導, 36*(14), 267-275. (COVID-19藥物治療綜述) ([27])</li>
+                            <li>黃云, 司小宝, 何昕玙, 赵慧宇, 亓振凯, 聂木子. (2022). SARS-CoV-2 3CLpro抑制剂的设计、合成及分子对接研究. *药物化学, 10*(4), 352-357. ([28])</li>
+                            <li>Jin, Z., Du, X., Xu, Y. et al. (2020). Structure of Mpro from SARS-CoV-2 and discovery of its inhibitors. *Nature, 582*, 289–293. (PDB ID 6LU7 原始文獻) <a href="https://www.nature.com/articles/s41586-020-2223-y" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[連結]</a> ([20, 21])</li>
+                            <li>Kneller, D. W., et al. (2022). Structural and biochemical interrogation of the SARS-CoV-2 main protease catalytic dyad. *Journal of Virology, 96*(22), e01238-22. (Mpro催化二聯體研究) ([19])</li>
+                            <li>Acevedo, O., et al. (2022). Polarizable MD and QM/MM Investigation of Acrylamide-Based Leads To Target the Main Protease of SARS-CoV-2. *ChemRxiv*. (Mpro催化機制與抑制劑計算研究) ([16])</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h4 class="text-lg font-semibold mb-2 mt-4 text-sky-200">教科書/科普書籍 (Textbooks/Popular Science Books):</h4>
+                        <ul class="list-decimal list-inside space-y-2 pl-4 text-sm start-9">
+                            <li>DK出版社. (2024). *真希望基礎生物這樣教【暢銷修訂版】：國高中生必備！看圖學生物，從細胞、遺傳學、物競天擇到生物學，建立生物素養一本就夠！*. 台灣: 東販出版. <a href="https://www.books.com.tw/products/0010998214" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[購買連結參考]</a> ([11, 12, 29])</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h4 class="text-lg font-semibold mb-2 mt-4 text-sky-200">資料庫與軟體教學/手冊 (Databases and Software Tutorials/Manuals):</h4>
+                        <ul class="list-decimal list-inside space-y-2 pl-4 text-sm start-10">
+                            <li>RCSB Protein Data Bank (PDB). <a href="https://www.rcsb.org/" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[官方網站]</a> (PDB ID 6LU7 [20, 21]; 8B2T [22]; 8DDL [23])</li>
+                            <li>Wolfram Language & System Documentation Center. 蛋白质数据库PDB 文件. (PDB檔案格式中文說明) ([4])</li>
+                            <li>CSDN博客. PDB文件中的记录类型. <a href="https://blog.csdn.net/weixin_40013463/article/details/81735304" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[連結]</a> ([5])</li>
+                            <li>PyMOL Wiki. <a href="http://pymol.chenzhaoqiang.com/" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[中文教程參考]</a> ([7])</li>
+                            <li>UCSF ChimeraX. <a href="https://www.jove.com/t/63170/modeling-an-enzyme-active-site-using-molecular-visualization-freeware?language=Chinese" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[JoVE中文教學影片參考]</a> ([6])</li>
+                            <li>AutoDock Vina - The Scripps Research Institute. <a href="http://vina.scripps.edu/manual.html" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[官方手冊]</a></li>
+                            <li>阿里云. 使用AutoDock Vina进行潜在药物筛选. <a href="https://www.alibabacloud.com/help/tc/e-hpc/e-hpc-1-0/use-cases/use-autodock-vina-to-screen-potential-drugs" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[連結]</a> ([8])</li>
+                            <li>新浪博客 - Yinfo Cloud. 分子对接Autodock Vina教程(二)：进行在线对接及结果分析. <a href="https://blog.sina.com.cn/s/blog_13d2342f70102yqe6.html" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[連結]</a> ([9])</li>
+                            <li>AutoDock Tutorial. Using AutoDock 4 with AutoDockTools: A Tutorial. ([10])</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h4 class="text-lg font-semibold mb-2 mt-4 text-sky-200">藥物開發與虛擬篩選相關 (Drug Development and Virtual Screening):</h4>
+                        <ul class="list-decimal list-inside space-y-2 pl-4 text-sm start-19">
+                            <li>華東理工大學出版社. *藥物設計入門*. <a href="https://www.ecustpress.cn/book/7813.html" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[連結]</a> ([30])</li>
+                            <li>Hyper.ai 知識庫. 虚拟筛选. <a href="https://hyper.ai/cn/wiki/29210" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[連結]</a> ([2])</li>
+                            <li>CSDN博客 - 分子对接教程：从基础到实践的全面指南. <a href="https://blog.csdn.net/weixin_56860330/article/details/146388233" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[連結]</a> ([3])</li>
+                            <li>高雄榮民總醫院教學研究部. 新藥研究發展與核准上巿過程. ([24])</li>
+                            <li>衛生福利部食品藥物管理署. 藥品臨床試驗申請須知. ([31])</li>
+                        </ul>
+                    </section>
+                     <section>
+                        <h4 class="text-lg font-semibold mb-2 mt-4 text-sky-200">其他參考 (Other References):</h4>
+                        <ul class="list-decimal list-inside space-y-2 pl-4 text-sm start-24">
+                            <li>Stec-Niemczyk, J. M. (2004). Figure 1: Catalytic mechanism of cysteine proteinases as exemplified by papain. *ResearchGate*. <a href="https://www.researchgate.net/figure/Catalytic-mechanism-of-cysteine-proteinases-as-exemplified-by-papain-description-in-the_fig1_8104492" target="_blank" class="text-sky-400 hover:text-sky-300 underline">[連結]</a> ([18])</li>
+                            <li>Roy, A., et al. (2022). Figure 1: Cysteine proteases' general catalytic mode of action, as demonstrated with papain. *ResearchGate*. ([17])</li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+
+            <div id="tab7" class="tab-content bg-slate-800 p-6 rounded-lg shadow-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-sky-400 border-b border-slate-700 pb-2">7. 學習資訊圖表 (Learning Infographic)</h2>
+                <p class="mb-4 text-slate-300">此處嵌入您的「COVID-19 Mpro 自主學習計畫資訊圖表」。您可能需要將資訊圖表的HTML檔案 (例如命名為 `infographic.html`) 與此主計畫HTML檔案放置在同一資料夾或可訪問路徑下，並修改下方 `src` 屬性中的檔案名稱。</p>
+                <iframe id="infographicFrame" src="infographic.html" class="iframe-container" title="學習資訊圖表">
+                    您的瀏覽器不支援iframes，請直接開啟 infographic.html 檔案。
+                </iframe>
+                <p class="mt-4 text-sm text-slate-400">提示：如果資訊圖表未顯示，請檢查 `infographic.html` 檔案路徑是否正確，以及該檔案是否與本計畫網頁在同一伺服器或資料夾結構下，以避免跨域問題。</p>
+            </div>
+
+            <div id="tab8" class="tab-content bg-slate-800 p-6 rounded-lg shadow-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-sky-400 border-b border-slate-700 pb-2">8. 語音摘要 (Audio Summary)</h2>
+                <p class="mb-4 text-slate-300">請點擊下方播放器聆聽本自主學習計畫的語音摘要："COVID's Master Lock: Unlocking Drug Discovery with Molecular Sleuthing"。</p>
+                <audio controls class="w-full max-w-md mx-auto mt-4 rounded-lg shadow-md">
+                    <source src="COVID's_Master_Lock__Unlocking_Drug_Discovery_with_Molecular_Sleuthing.mp3" type="audio/mpeg">
+                    您的瀏覽器不支援音訊播放器。請確認 "COVID's_Master_Lock__Unlocking_Drug_Discovery_with_Molecular_Sleuthing.mp3" 檔案存在且路徑正確。
+                </audio>
+                <p class="mt-4 text-sm text-slate-400 text-center">提示：如果無法播放，請確認MP3檔案名稱無誤，且與本計畫網頁位於同一資料夾或可訪問路徑。</p>
+            </div>
+
+        </main>
+
+        <footer class="mt-12 text-center text-sm text-slate-500">
+            <p>&copy; 2025 自主學習計畫成果. Designed for learning purposes.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Data for the learning plan
+        const learningPlanData = [
+            {
+                phase: "Phase 1: 基礎知識建立 (Foundational Knowledge)",
+                duration: "2025年9月1日 - 2025年9月30日 (Month 1)",
+                monthlyGoal: "建立細胞生物學、病毒學、蛋白質化學及酵素學的基礎概念，初步認識SARS-CoV-2病毒的特性及其主蛋白酶Mpro在病毒複製中的關鍵角色。此階段的學習對於理解後續更專業的Mpro結構功能及抑制劑開發至關重要，為高中生進入專業領域打下堅實的知識基礎。",
+                weeks: [
+                    {
+                        weekNum: 1,
+                        title: "細胞與生命分子 (Cells and Molecules of Life)",
+                        weeklyGoal: "理解細胞的基本結構與功能，認識構成生命的主要大分子，特別是蛋白質的組成單位、結構層次與多樣性。",
+                        days: [
+                            { day: 1, date: "2025/09/01", task: "閱讀《真希望基礎生物這樣教》第1章「基礎生物學：生命是什麼？生命的化學、生命分子」及第2章「細胞：細胞基礎、顯微鏡、細胞結構」中有關細胞基本概念、主要化學組成與細胞結構的內容 [11, 12]。", goal: "能夠簡述生命的共同特徵，列出構成細胞的主要元素與有機大分子；描述原核細胞與真核細胞的主要區別；繪製一個典型的動物細胞結構示意圖，並標註主要胞器 (如細胞核、粒線體、內質網、高基氏體、溶體、核糖體、細胞膜) 的名稱及其核心功能。", ref: "[11, 12]", id: "p1w1d1" },
+                            { day: 2, date: "2025/09/02", task: "繼續研讀《真希望基礎生物這樣教》第2章「細胞」關於細胞運輸、幹細胞與特化細胞、組織的內容 [11, 12]。", goal: "理解細胞膜的物質運輸方式 (被動運輸、主動運輸)；了解幹細胞的特性與分化潛能；認識由細胞構成組織的基本概念。", ref: "[11, 12]", id: "p1w1d2" },
+                            { day: 3, date: "2025/09/03", task: "複習前兩日細胞生物學內容，並閱讀《真希望基礎生物這樣教》第3章「遺傳學：DNA、基因」中有關DNA結構與功能的基礎部分 [11, 12]。", goal: "鞏固細胞結構與功能的知識；了解DNA是遺傳物質，掌握DNA的雙螺旋結構模型及其組成單位 (核苷酸)。", ref: "[11, 12]", id: "p1w1d3" },
+                            { day: 4, date: "2025/09/04", task: "學習蛋白質的基礎知識。閱讀相關科普文章或教科書基礎章節，了解胺基酸的結構通式、種類 (必需/非必需)，以及肽鍵的形成。", goal: "能夠畫出胺基酸的通用結構，並解釋20種常見胺基酸側鏈的差異性如何賦予蛋白質多樣性；理解胺基酸如何透過肽鍵連接形成多肽鏈。", ref: "-", id: "p1w1d4" },
+                            { day: 5, date: "2025/09/05", task: "深入學習蛋白質的四級結構 (一級、二級、三級、四級結構) 及其決定因素。", goal: "解釋蛋白質一級結構的定義及其重要性；描述常見的二級結構類型 (α-螺旋和β-折疊) 的特徵；理解三級結構是多肽鏈的整體三維空間構象，以及四級結構是多亞基蛋白質的亞基組合方式。", ref: "-", id: "p1w1d5" },
+                            { day: 6, date: "2025/09/06", task: "複習本週所學的細胞與生命分子知識，製作概念圖或思維導圖，將相關知識點串聯起來。", goal: "系統性地整理和鞏固本週學習內容，為後續學習打下基礎。", ref: "-", id: "p1w1d6" },
+                            { day: 7, date: "2025/09/07", task: "休息與反思。回顧本週學習進度，記錄遇到的問題與心得。", goal: "調整學習節奏，確保身心健康。", ref: "-", id: "p1w1d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 2,
+                        title: "病毒學入門 (Introduction to Virology)",
+                        weeklyGoal: "了解病毒的基本特性、結構組成、多樣的複製週期，並初步認識冠狀病毒科病毒的分類、基因組特點及主要蛋白質。",
+                        days: [
+                            { day: 8, date: "2025/09/08", task: "閱讀《真希望基礎生物這樣教》第5章「生物的組織：病毒」章節 [11, 12]。", goal: "了解病毒的定義、基本結構 (核心核酸、衣殼蛋白，部分病毒有包膜)；比較病毒與細胞在結構、代謝、繁殖方式上的根本區別；認識病毒的宿主專一性。", ref: "[11, 12]", id: "p1w2d1" },
+                            { day: 9, date: "2025/09/09", task: "學習病毒的多種複製週期 (如裂解性週期和溶原性週期)。搜尋並觀看一部關於病毒複製過程的科普動畫短片 (中文)。", goal: "理解病毒複製的一般步驟：吸附、侵入、脫殼、生物合成 (核酸複製、蛋白質合成)、組裝與釋放。", ref: "-", id: "p1w2d2" },
+                            { day: 10, date: "2025/09/10", task: "專注學習冠狀病毒的基礎知識。閱讀科普文章或學術文獻的引言部分，了解冠狀病毒的分類 (α、β、γ、δ屬) 及其主要的人類病原體 [13]。", goal: "知道SARS-CoV-2屬於β屬冠狀病毒；了解冠狀病毒是具有包膜的正鏈單股RNA病毒，是已知RNA病毒中基因組最大的之一 [1, 13]。", ref: "[1, 13]", id: "p1w2d3" },
+                            { day: 11, date: "2025/09/11", task: "深入了解冠狀病毒的主要結構蛋白：刺突蛋白 (Spike protein, S)、膜蛋白 (Membrane protein, M)、核衣殼蛋白 (Nucleocapsid protein, N) 和包膜蛋白 (Envelope protein, E) 的功能 [13]。", goal: "描述S蛋白在病毒識別宿主細胞受體、介導膜融合中的關鍵作用；簡述M、N、E蛋白在病毒顆粒組裝、RNA包裹及病毒釋放中的功能。", ref: "[13]", id: "p1w2d4" },
+                            { day: 12, date: "2025/09/12", task: "初步了解冠狀病毒的非結構蛋白 (Non-structural proteins, nsps)。閱讀文獻 [13] 中關於ORF1a和ORF1b基因編碼多聚蛋白，並被蛋白酶切割產生nsps的描述。", goal: "知道冠狀病毒基因組中存在開放閱讀框ORF1a和ORF1b，它們編碼產生病毒複製所需的多種非結構蛋白。", ref: "[13]", id: "p1w2d5" },
+                            { day: 13, date: "2025/09/13", task: "複習本週病毒學知識，特別是冠狀病毒的結構與複製特點。嘗試繪製SARS-CoV-2病毒顆粒的結構示意圖。", goal: "鞏固對冠狀病毒生物學特性的理解。", ref: "-", id: "p1w2d6" },
+                            { day: 14, date: "2025/09/14", task: "休息與反思。整理本週學習筆記，思考病毒與宿主相互作用的複雜性。", goal: "消化吸收所學知識，為下一階段學習做準備。", ref: "-", id: "p1w2d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 3,
+                        title: "蛋白質與酵素 (Proteins and Enzymes)",
+                        weeklyGoal: "深入理解蛋白質作為生命功能執行者的多樣性，重點學習酵素的催化原理、動力學特性以及影響酵素活性的因素，為後續理解Mpro的功能奠定基礎。",
+                        days: [
+                            { day: 15, date: "2025/09/15", task: "閱讀《真希望基礎生物這樣教》第6章「代謝：化學反應與途徑、酶(酵素)」關於酵素基本概念的內容 [11, 12]。", goal: "理解酵素的定義 (生物催化劑，主要成分是蛋白質)；了解酵素的特異性 (底物特異性、反應特異性) 和高效性。", ref: "[11, 12]", id: "p1w3d1" },
+                            { day: 16, date: "2025/09/16", task: "學習酵素的活性位點 (Active site) 概念以及「鎖鑰模型」和「誘導契合模型」。", goal: "解釋酵素活性位點是酵素與底物結合併發生催化反應的區域；比較並理解兩種底物結合模型的含義。", ref: "-", id: "p1w3d2" },
+                            { day: 17, date: "2025/09/17", task: "學習影響酵素活性的主要因素：溫度、pH值。", goal: "解釋為何酵素活性有最適溫度和最適pH值，過高或過低都會導致活性下降甚至失活 (變性)。", ref: "-", id: "p1w3d3" },
+                            { day: 18, date: "2025/09/18", task: "學習影響酵素活性的主要因素：底物濃度、酵素濃度。初步了解米氏常數 ($K_m$) 和最大反應速率 ($V_{max}$) 的概念。", goal: "理解在酵素濃度一定時，底物濃度對反應速率的影響曲線；理解在底物足夠時，酵素濃度與反應速率的關係。", ref: "-", id: "p1w3d4" },
+                            { day: 19, date: "2025/09/19", task: "初步了解酵素抑制劑 (Enzyme inhibitor) 的概念及其分類 (可逆抑制劑、不可逆抑制劑)。", goal: "知道抑制劑是可以降低酵素活性的物質，並了解其基本分類。這是後續學習Mpro抑制劑的基礎。", ref: "-", id: "p1w3d5" },
+                            { day: 20, date: "2025/09/20", task: "複習本週酵素學知識，嘗試用自己的話解釋酵素催化的核心原理。", goal: "鞏固對酵素作用機制及影響因素的理解。", ref: "-", id: "p1w3d6" },
+                            { day: 21, date: "2025/09/21", task: "休息與反思。思考酵素在生命活動中的重要性。", goal: "整理學習思路，保持學習動力。", ref: "-", id: "p1w3d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 4,
+                        title: "SARS-CoV-2 與 Mpro 初探 (Introduction to SARS-CoV-2 and Mpro)",
+                        weeklyGoal: "結合前三週所學，具體了解COVID-19的致病機制梗概，並聚焦於SARS-CoV-2主蛋白酶 (Mpro/NSP5) 的來源、在病毒多聚蛋白切割中的核心功能及其作為藥物靶點的重要性。",
+                        days: [
+                            { day: 22, date: "2025/09/22", task: "閱讀關於COVID-19致病機制的科普文章或文獻摘要。了解病毒如何侵入宿主細胞，以及如何在細胞內複製增殖 [1]。", goal: "簡述SARS-CoV-2的感染過程，包括S蛋白與ACE2受體的結合，以及病毒RNA釋放和複製的主要步驟。", ref: "[1]", id: "p1w4d1" },
+                            { day: 23, date: "2025/09/23", task: "深入學習SARS-CoV-2基因組中ORF1a和ORF1b的轉譯產物——多聚蛋白pp1a和pp1ab。理解這些多聚蛋白必須經過蛋白酶切割才能產生有功能的非結構蛋白 (nsp) [1, 13]。", goal: "知道Mpro (即NSP5) 是由病毒自身編碼的蛋白酶之一，其主要底物是病毒的多聚蛋白。", ref: "[1, 13]", id: "p1w4d2" },
+                            { day: 24, date: "2025/09/24", task: "明確Mpro在病毒複製中的具體作用。閱讀文獻 [1] 中關於Mpro切割位點的描述 (至少11個位點)。", goal: "理解Mpro通過精確切割多聚蛋白，釋放出多種對病毒基因組複製、轉錄至關重要的非結構蛋白 (如RdRp, 解旋酶等)，因此Mpro是病毒生命週期中不可或缺的酶。", ref: "[1]", id: "p1w4d3" },
+                            { day: 25, date: "2025/09/25", task: "學習為何Mpro被認為是理想的抗病毒藥物靶點。複習Mpro在冠狀病毒中的高度保守性以及人體內缺乏同源蛋白酶的特點 [1]。", goal: "總結Mpro作為藥物靶點的優勢：抑制Mpro活性可以直接阻斷病毒複製；由於其保守性，抑制劑可能具有廣譜抗冠狀病毒潛力；由於與人體蛋白酶差異大，預期副作用較小。", ref: "[1]", id: "p1w4d4" },
+                            { day: 26, date: "2025/09/26", task: "查閱台灣在COVID-19藥物研發方面的努力，例如中研院梁博煌研究員團隊在Mpro抑制劑方面的早期研究成果 [14, 15]。", goal: "了解本土科學家在抗疫科研中的貢獻，增加學習的親切感與使命感。", ref: "[14, 15]", id: "p1w4d5" },
+                            { day: 27, date: "2025/09/27", task: "複習本週關於SARS-CoV-2與Mpro的知識。思考若成功開發出高效Mpro抑制劑，對疫情防控的意義。", goal: "鞏固對Mpro在病毒複製中關鍵作用的理解及其作為藥物靶標的重要性。", ref: "-", id: "p1w4d6" },
+                            { day: 28, date: "2025/09/28", task: "休息與反思。準備進入下一個更深入的學習階段。", goal: "做好知識銜接，保持學習熱情。", ref: "-", id: "p1w4d7" },
+                            { day: 29, date: "2025/09/29", task: "月底總結與回顧。整理本月所有學習筆記與資料，準備月度測驗。", goal: "系統梳理本月所學的細胞生物學、病毒學、蛋白質與酵素基礎，以及對SARS-CoV-2和Mpro的初步認識。", ref: "-", id: "p1w4d8" },
+                            { day: 30, date: "2025/09/30", task: "完成Phase 1月度學習評量測驗卷。", goal: "檢驗本月學習成果，找出知識薄弱點以便後續加強。", ref: "-", id: "p1w4d9" },
+                        ]
+                    }
+                ]
+            },
+            {
+                phase: "Phase 2: Mpro 結構與功能深入探討 (In-depth Mpro Structure & Function)",
+                duration: "2025年10月1日 - 2025年10月31日 (Month 2)",
+                monthlyGoal: "深入理解SARS-CoV-2 Mpro的三維結構特徵，包括其單體結構域組成、同源二聚體的形成方式及其對活性的意義；精確掌握其活性位點的關鍵胺基酸殘基 (特別是Cys145-His41催化二聯體) 的空間排布與化學特性；詳細學習Mpro催化病毒多聚蛋白水解的分子機制。同時，開始學習使用蛋白質資料庫 (PDB) 檢索和獲取Mpro結構數據，並初步掌握分子視覺化軟體 (如PyMOL或ChimeraX) 的基本操作，為後續的虛擬藥物開發奠定結構生物學基礎。此階段的學習強調從抽象的文字描述轉向直觀的分子結構觀察，是培養結構生物學思維的關鍵一步。",
+                weeks: [
+                    {
+                        weekNum: 5,
+                        title: "Mpro 三維結構解析 (Analyzing Mpro 3D Structure)",
+                        weeklyGoal: "學習Mpro的整體折疊方式、其作為同源二聚體存在的功能意義，以及構成每個單體的三個主要結構域 (Domain I, II, III) 的結構特點與相對位置。",
+                        days: [
+                            { day: 31, date: "2025/10/01", task: "閱讀學術文獻 [1] 和 [1] 中關於SARS-CoV-2 Mpro三維結構的詳細描述。重點關注其同源二聚體 (homodimer) 的特性。", goal: "理解Mpro通常以二聚體形式發揮活性，每個單體包含三個結構域 (Domain I, II, III)；了解Domain I和II主要由反平行的β-折疊構成，Domain III主要由α-螺旋組成，以及Domain II和III之間由一個長的環區 (loop region) 連接 [1]。", ref: "[1]", id: "p2w1d1" },
+                            { day: 32, date: "2025/10/02", task: "學習蛋白質資料庫 (Protein Data Bank, PDB) 的基礎知識。瀏覽RCSB PDB官方網站 (rcsb.org)，閱讀其「PDB-101」教育資源中關於PDB的介紹。研讀PDB資料庫教學文檔 [4, 5]，了解PDB ID的命名規則和意義。", goal: "知道PDB是儲存大生物分子 (如蛋白質和核酸) 三維結構數據的資料庫；能夠解釋PDB ID (如6LU7) 代表一個特定的結構條目；了解PDB檔案中儲存了原子的三維座標等資訊 [4]。", ref: "[4, 5]", id: "p2w1d2" },
+                            { day: 33, date: "2025/10/03", task: "深入學習PDB檔案格式。重點理解PDB檔案中常見的記錄類型 (Record Types)，如HEADER (標題資訊)、TITLE (實驗描述)、COMPND (化合物分子組成)、SOURCE (來源)、EXPDTA (實驗方法)、ATOM (標準殘基原子座標)、HETATM (非標準殘基或小分子原子座標)、SEQRES (殘基序列) 等 [5]。", goal: "能夠大致看懂一個PDB檔案的文本內容，並從中找到上述關鍵記錄類型及其包含的資訊。", ref: "[5]", id: "p2w1d3" },
+                            { day: 34, date: "2025/10/04", task: "了解Mpro結構域的具體功能。Domain I和II共同構成了催化活性位點所在的裂隙，而Domain III參與調節二聚體的形成和穩定性，這對酶的活性至關重要 [1, 16]。", goal: "描述Mpro各結構域在維持酶結構和功能中的作用，特別是二聚化界面對活性位點構象的影響。", ref: "[1, 16]", id: "p2w1d4" },
+                            { day: 35, date: "2025/10/05", task: "比較SARS-CoV Mpro與SARS-CoV-2 Mpro的結構同源性。查閱資料了解兩者序列相似度高達96% [1]，這解釋了為何針對SARS-CoV Mpro的研究經驗對COVID-19藥物開發有重要參考價值 [14]。", goal: "理解不同冠狀病毒Mpro之間的結構保守性，及其在廣譜抗病毒藥物開發中的意義。", ref: "[1, 14]", id: "p2w1d5" },
+                            { day: 36, date: "2025/10/06", task: "複習本週所學的Mpro三維結構知識和PDB資料庫基礎。嘗試總結Mpro結構的關鍵特徵。", goal: "鞏固對Mpro作為一個二聚體酶，其各結構域組成及PDB資料庫基本概念的理解。", ref: "-", id: "p2w1d6" },
+                            { day: 37, date: "2025/10/07", task: "休息與反思。思考蛋白質結構與其功能之間的密切關係。", goal: "培養從結構角度理解蛋白質功能的思維方式。", ref: "-", id: "p2w1d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 6,
+                        title: "Mpro 活性位點與催化機制 (Mpro Active Site & Catalytic Mechanism)",
+                        weeklyGoal: "精確辨識Mpro活性位點中的催化殘基 (Cys145和His41) 和底物結合腔 (S1, S2, S4, S1')；深入理解Mpro作為半胱氨酸蛋白酶的催化多肽鏈水解的詳細化學步驟。",
+                        days: [
+                            { day: 38, date: "2025/10/08", task: "閱讀文獻 [1] 中關於Mpro活性位點組成的描述。確認催化二聯體 (catalytic dyad) 是由Cys145的硫醇基 (-SH) 和His41的咪唑環構成。", goal: "準確說出Mpro催化活性中心的兩個關鍵胺基酸殘基及其在催化中的大致角色 (Cys145作為親核基團，His41作為廣義鹼基輔助催化)。", ref: "[1]", id: "p2w2d1" },
+                            { day: 39, date: "2025/10/09", task: "學習一般半胱氨酸蛋白酶的催化機制。參考木瓜蛋白酶 (papain) 的催化機制圖解 [17, 18]，了解催化過程中親核攻擊、硫酯中間體 (acyl-enzyme intermediate) 的形成與水解等步驟。", goal: "理解半胱氨酸蛋白酶催化反應的基本框架，為理解Mpro的具體機制打下基礎。催化過程通常涉及Cys的硫醇鹽離子對底物肽鍵羰基碳的親核攻擊，His幫助Cys去質子化增強其親核性，並在後續步驟中作為質子供體 [18]。", ref: "[17, 18]", id: "p2w2d2" },
+                            { day: 40, date: "2025/10/10", task: "結合Mpro的特性，學習其具體的催化機制。閱讀文獻 [16, 19] 中關於Mpro Cys145-His41催化二聯體作用機制的討論。", goal: "繪製SARS-CoV-2 Mpro催化肽鍵水解的簡化示意圖，標出Cys145和His41在去質子化、親核攻擊、四面體中間體形成、酰基-酶中間體形成、以及水解釋放產物過程中的作用。", ref: "[16, 19]", id: "p2w2d3" },
+                            { day: 41, date: "2025/10/11", task: "了解Mpro的底物結合口袋 (substrate-binding pockets/cavities)。Mpro活性位點具有多個子位點 (S1, S2, S4, S1'等)，這些子位點的形狀和化學性質決定了酶對底物序列的特異性，特別是P1位點對應的S1口袋對谷氨酰胺 (Gln) 具有偏好性 [1]。", goal: "描述Mpro主要底物結合口袋的特徵及其在底物識別中的作用。理解為何Mpro特異性切割多聚蛋白中Gln殘基之後的肽鍵。", ref: "[1]", id: "p2w2d4" },
+                            { day: 42, date: "2025/10/12", task: "查閱資料，了解Mpro活性位點中除了Cys145和His41之外，其他一些保守的胺基酸殘基 (如Gly143, His163, His164, Glu166等) 如何通過氫鍵等相互作用幫助穩定底物結合或催化中間態。", goal: "認識到酶的活性位點是一個協同工作的微環境，而不僅僅是催化殘基的簡單組合。", ref: "-", id: "p2w2d5" },
+                            { day: 43, date: "2025/10/13", task: "複習本週Mpro活性位點與催化機制的知識。嘗試向他人清晰地解釋Mpro是如何工作的。", goal: "內化對Mpro催化過程的理解，並能用科學語言進行描述。", ref: "-", id: "p2w2d6" },
+                            { day: 44, date: "2025/10/14", task: "休息與反思。思考酶的高效性和特異性是如何通過其活性位點的精巧結構實現的。", goal: "加深對酶結構-功能關係的理解。", ref: "-", id: "p2w2d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 7,
+                        title: "PDB 資料庫實戰 (PDB Database Practical)",
+                        weeklyGoal: "熟練運用RCSB PDB官方網站的功能，能夠根據關鍵詞或PDB ID準確搜尋、瀏覽、比較和下載SARS-CoV-2 Mpro及其與抑制劑複合物的結構數據檔案。",
+                        days: [
+                            { day: 45, date: "2025/10/15", task: "訪問RCSB PDB網站 (rcsb.org)。使用關鍵詞 \"SARS-CoV-2 main protease\", \"COVID-19 Mpro\", \"3CL protease SARS-CoV-2\" 等進行搜尋。", goal: "熟悉PDB網站的搜尋介面，觀察搜尋結果的呈現方式 (如PDB ID列表、結構預覽圖、相關文獻等)。了解如何篩選和排序搜尋結果。", ref: "rcsb.org", id: "p2w3d1" },
+                            { day: 46, date: "2025/10/16", task: "選擇一個Mpro的PDB條目進行詳細查看，例如 6LU7 (SARS-CoV-2 Mpro與抑制劑N3的複合物) [20, 21] 或 8B2T (Mpro與Nirmatrelvir的衍生物複合物) [22]。", goal: "學習PDB條目頁面的佈局。能夠從頁面中找到該結構的標題、發表日期、解析方法 (如X-RAY DIFFRACTION)、解析度 (Resolution)、R值 (R-Value Free/Work)、作者、相關出版物 (Primary Citation)、大分子資訊 (Macromolecule content: 鏈名稱、序列、分子量)、小分子/配體資訊 (Small Molecules: 配體ID、名稱、分子式、2D/3D結構) 等。", ref: "[20, 21, 22]", id: "p2w3d2" },
+                            { day: 47, date: "2025/10/17", task: "學習如何從PDB條目頁面下載不同格式的檔案，特別是PDB格式 (.pdb 或.pdb.gz) 和PDBx/mmCIF格式 (.cif 或.cif.gz) 的座標檔案，以及FASTA格式的序列檔案。", goal: "成功下載PDB ID 6LU7的PDB格式檔案和FASTA序列檔案。理解PDB格式和mmCIF格式都是儲存原子座標的標準格式，後者是較新的官方格式。", ref: "PDB ID: 6LU7", id: "p2w3d3" },
+                            { day: 48, date: "2025/10/18", task: "練習使用PDB網站的「Sequence」標籤頁查看蛋白質序列、二級結構註釋、以及與UniProt等資料庫的連結。查看PDB ID 8DDL (Mpro H163A突變體) [23]，注意其突變信息。", goal: "能夠在PDB網站上找到特定蛋白質的胺基酸序列，並了解其與其他生物學資料庫的關聯。", ref: "PDB ID: 8DDL [23]", id: "p2w3d4" },
+                            { day: 49, date: "2025/10/19", task: "探索PDB網站的「3D View」功能，使用內建的Mol* (Molstar) 工具在瀏覽器中直接觀察蛋白質結構。嘗試不同的顯示模式和顏色方案。", goal: "初步體驗在線三維結構觀察，為後續使用專業視覺化軟體做準備。", ref: "rcsb.org", id: "p2w3d5" },
+                            { day: 50, date: "2025/10/20", task: "複習本週PDB資料庫的實戰操作。嘗試獨立搜尋並下載一個你感興趣的其他Mpro複合物結構。", goal: "鞏固PDB資料庫的使用技能，能夠自主獲取所需的蛋白質結構數據。", ref: "-", id: "p2w3d6" },
+                            { day: 51, date: "2025/10/21", task: "休息與反思。思考PDB資料庫對現代生物學和藥物研發的重要性。", goal: "認識到結構數據共享對科學進步的推動作用。", ref: "-", id: "p2w3d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 8,
+                        title: "分子視覺化軟體入門 (Introduction to Molecular Visualization Software)",
+                        weeklyGoal: "學習安裝並掌握至少一種主流分子視覺化軟體 (PyMOL優先，或ChimeraX) 的基本操作，包括載入PDB檔案、改變分子顯示樣式、選擇特定原子/殘基/鏈、測量距離/角度、製作高品質分子圖像等，並能觀察Mpro的整體結構及其與抑制劑的結合模式。",
+                        days: [
+                            { day: 52, date: "2025/10/22", task: "選擇並下載安裝PyMOL (可從官方網站獲取教育版或開源版本) 或UCSF ChimeraX (免費)。參考其官方網站或教學資源 (如PyMOL中文教程 [7]，ChimeraX教學 [6]) 完成安裝。", goal: "成功在本機電腦上安裝並能啟動所選的分子視覺化軟體。", ref: "[6, 7]", id: "p2w4d1" },
+                            { day: 53, date: "2025/10/23", task: "學習軟體的基本介面與滑鼠操作。練習載入之前下載的PDB檔案 (如6LU7.pdb)。熟悉如何使用滑鼠進行結構的旋轉、平移和縮放。", goal: "掌握基本的視圖控制操作，能夠流暢地從不同角度觀察分子。", ref: "PyMOL/ChimeraX", id: "p2w4d2" },
+                            { day: 54, date: "2025/10/24", task: "學習改變分子的顯示樣式 (Representation)。練習將蛋白質顯示為卡通 (cartoon)、表面 (surface)、線條 (lines)、棒狀 (sticks)、球狀 (spheres) 等不同模式。學習如何為不同的鏈或分子設定不同的顏色。", goal: "能夠根據需要選擇合適的顯示樣式以突顯不同的結構特徵。例如，用卡通模式顯示蛋白質骨架，用棒狀模式顯示活性位點殘基或配體。", ref: "PyMOL/ChimeraX", id: "p2w4d3" },
+                            { day: 55, date: "2025/10/25", task: "學習選擇 (Selection) 功能。練習如何選擇特定的原子、胺基酸殘基 (如Cys145, His41)、配體分子 (如6LU7中的抑制劑N3，其HETATM記錄)。對選中的部分進行特殊顯示 (如高亮、改變顏色或樣式)。", goal: "能夠精確選定感興趣的分子區域進行細緻觀察和分析。這是理解活性位點和藥物結合模式的關鍵。", ref: "PyMOL/ChimeraX, PDB:6LU7", id: "p2w4d4" },
+                            { day: 56, date: "2025/10/26", task: "載入PDB ID 6LU7，重點觀察抑制劑N3是如何與Mpro活性位點相互作用的。嘗試找到並顯示抑制劑與周圍胺基酸之間可能的氫鍵。使用軟體的測量功能，測量關鍵原子間的距離。", goal: "透過視覺化，直觀理解抑制劑的結合模式和主要的相互作用力。", ref: "PyMOL/ChimeraX, PDB:6LU7", id: "p2w4d5" },
+                            { day: 57, date: "2025/10/27", task: "學習如何製作高品質的分子圖像並保存。練習調整背景顏色 (如白色背景 [6])、光照、視角，以獲得清晰美觀的圖像。將觀察到的Mpro與抑制劑N3的結合位點圖像保存下來。", goal: "掌握製作可用於報告或展示的分子結構圖的技能。", ref: "[6]", id: "p2w4d6" },
+                            { day: 58, date: "2025/10/28", task: "休息與反思。思考分子視覺化技術如何幫助科學家理解複雜的生物大分子結構與功能。", goal: "體會到「眼見為實」在分子生物學研究中的重要性。", ref: "-", id: "p2w4d7" },
+                            { day: 59, date: "2025/10/29", task: "月底總結與回顧。整理本月Mpro結構功能、PDB資料庫使用和分子視覺化軟體學習的筆記與成果。", goal: "系統梳理本月所學，確保對Mpro的結構生物學有深入理解，並能熟練使用相關工具。", ref: "-", id: "p2w4d8" },
+                            { day: 60, date: "2025/10/30", task: "完成Phase 2月度學習評量測驗卷。", goal: "檢驗本月學習成果，特別是對Mpro結構細節和軟體操作的掌握程度。", ref: "-", id: "p2w4d9" },
+                            { day: 61, date: "2025/10/31", task: "預留彈性學習日。可用於補足之前未完成的任務，或深入研究感興趣的特定知識點。", goal: "確保學習進度，並鼓勵自主探索。", ref: "-", id: "p2w4d10" },
+                        ]
+                    }
+                ]
+            },
+            {
+                phase: "Phase 3: 藥物開發與抑制劑原理 (Drug Development & Inhibitor Principles)",
+                duration: "2025年11月1日 - 2025年11月30日 (Month 3)",
+                monthlyGoal: "系統了解新藥從最初的化學實體發現到最終獲批上市的基本流程與主要階段；深入學習酶抑制劑的分類、作用機制及其動力學特徵；重點研究針對SARS-CoV-2 Mpro的抑制劑設計策略、已有的代表性抑制劑 (如Nirmatrelvir) 的作用原理以及藥物耐受性問題；並初步接觸基於結構的虛擬藥物篩選 (SBVS) 和分子對接 (Molecular Docking) 的核心概念與應用。此階段旨在將生物學知識與藥物化學原理相結合，為後續的虛擬篩選實作打下理論基礎，讓學生理解虛擬篩選在整個藥物開發鏈條中的定位和價值。",
+                weeks: [
+                    {
+                        weekNum: 9,
+                        title: "新藥開發流程概覽 (Overview of Drug Development Process)",
+                        weeklyGoal: "建立對現代藥物研發完整生命週期的宏觀認識，了解一個新藥從實驗室走向臨床應用所經歷的主要里程碑和挑戰。",
+                        days: [
+                            { day: 62, date: "2025/11/01", task: "閱讀關於新藥開發流程的科普文章或入門教材。參考 [24] 中提到的新化學實體 (NCE) 的早期研究階段，以及 [25] 中關於臨床試驗的法規依據。", goal: "了解新藥開發的主要階段：藥物發現 (Drug Discovery)、臨床前研究 (Preclinical Research)、臨床試驗 (Clinical Trials: Phase I, II, III)、藥品審查與批准 (Regulatory Review and Approval)、上市後監測 (Post-marketing Surveillance)。", ref: "[24, 25]", id: "p3w1d1" },
+                            { day: 63, date: "2025/11/02", task: "專注於藥物發現階段。了解靶點確認 (Target Identification and Validation)、高通量篩選 (High-Throughput Screening, HTS)、先導化合物的發現 (Hit to Lead) 等概念。", goal: "知道Mpro即為一個經過驗證的藥物靶點。理解HTS是從大量化合物中快速找到有初步活性的分子的方法。", ref: "-", id: "p3w1d2" },
+                            { day: 64, date: "2025/11/03", task: "學習臨床前研究的主要內容，包括藥效學 (Pharmacodynamics, PD)、藥代動力學 (Pharmacokinetics, PK)、毒理學 (Toxicology) 研究，通常在細胞和動物模型上進行 [24]。", goal: "理解臨床前研究是為了評估候選藥物的有效性、安全性以及在體內的吸收、分佈、代謝和排泄特性，為進入人體臨床試驗提供依據。", ref: "[24]", id: "p3w1d3" },
+                            { day: 65, date: "2025/11/04", task: "簡要了解臨床試驗的三個主要分期：I期 (初步安全性與耐受性，小規模健康受試者)、II期 (初步有效性與劑量探索，小規模目標患者)、III期 (確證有效性與安全性，大規模多中心目標患者)。", goal: "建立對臨床試驗階段性目標和規模的認知。", ref: "-", id: "p3w1d4" },
+                            { day: 66, date: "2025/11/05", task: "繪製一份新藥開發流程圖，標註各主要階段及其核心任務。思考虛擬篩選技術主要應用於哪個階段，及其在加速藥物發現中的作用 [2]。", goal: "系統化呈現新藥開發流程。理解虛擬篩選主要應用於藥物發現的早期階段，通過計算模擬手段，從大規模虛擬化合物庫中快速遴選潛在活性分子，以降低實驗篩選的成本和週期 [2]。", ref: "[2]", id: "p3w1d5" },
+                            { day: 67, date: "2025/11/06", task: "複習本週新藥開發流程知識。查閱一篇關於COVID-19藥物 (如Remdesivir或Paxlovid) 開發歷程的報導，將其與所學流程對應。", goal: "鞏固對藥物開發流程的理解，並能與實際案例聯繫。", ref: "-", id: "p3w1d6" },
+                            { day: 68, date: "2025/11/07", task: "休息與反思。體會新藥開發的長期性、高投入和高風險性。", goal: "培養對藥物研發艱辛性的客觀認識。", ref: "-", id: "p3w1d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 10,
+                        title: "酶抑制劑類型與動力學 (Enzyme Inhibitor Types and Kinetics)",
+                        weeklyGoal: "學習酶抑制劑的詳細分類 (可逆/不可逆，競爭性/非競爭性/反競爭性/混合型)，理解不同類型抑制劑影響酶促反應動力學參數 ($K_m$, $V_{max}$) 的方式，並掌握IC50值的概念及其在藥物篩選中的意義。",
+                        days: [
+                            { day: 69, date: "2025/11/08", task: "學習可逆抑制劑 (Reversible inhibitors) 與不可逆抑制劑 (Irreversible inhibitors) 的區別。", goal: "理解可逆抑制劑與酶的結合是非共價的、可解離的；而不可逆抑制劑通常與酶形成穩定的共價鍵，導致酶永久失活。", ref: "-", id: "p3w2d1" },
+                            { day: 70, date: "2025/11/09", task: "深入學習可逆抑制劑的分類：競爭性抑制劑 (Competitive inhibitors)。", goal: "理解競爭性抑制劑結構與底物相似，與底物競爭結合酶的活性位點。其效應可以通過增加底物濃度來克服。它使酶的表觀$K_m$值增大，而$V_{max}$不變。", ref: "-", id: "p3w2d2" },
+                            { day: 71, date: "2025/11/10", task: "學習可逆抑制劑的分類：非競爭性抑制劑 (Non-competitive inhibitors)。", goal: "理解非競爭性抑制劑結合酶的活性位點以外的其他位點，其結合不影響底物與酶的結合，但會降低酶的催化效率。它使酶的$V_{max}$降低，而$K_m$值不變 (理想情況下)。", ref: "-", id: "p3w2d3" },
+                            { day: 72, date: "2025/11/11", task: "學習可逆抑制劑的分類：反競爭性抑制劑 (Uncompetitive inhibitors) 和混合型抑制劑 (Mixed inhibitors)。", goal: "理解反競爭性抑制劑只與酶-底物複合物 (ES) 結合，使$K_m$和$V_{max}$均降低。混合型抑制劑則可以與游離酶或ES複合物結合，對$K_m$和$V_{max}$的影響較複雜。", ref: "-", id: "p3w2d4" },
+                            { day: 73, date: "2025/11/12", task: "學習半數抑制濃度 (IC50 value) 的概念及其在藥物評價中的應用。", goal: "理解IC50是指能夠抑制特定生物學功能 (如酶活性) 50%所需的藥物或抑制劑的濃度。IC50值越小，通常表示抑制劑的效力越強。", ref: "-", id: "p3w2d5" },
+                            { day: 74, date: "2025/11/13", task: "複習本週酶抑制劑類型與動力學知識。嘗試繪製Lineweaver-Burk雙倒數圖，展示不同類型可逆抑制劑對酶促反應動力學的影響。", goal: "鞏固對各種抑制劑作用機制及其動力學特徵的理解。", ref: "-", id: "p3w2d6" },
+                            { day: 75, date: "2025/11/14", task: "休息與反思。思考酶抑制劑在藥物治療中的廣泛應用 (如抗生素、抗癌藥、抗病毒藥等)。", goal: "認識酶抑制劑在醫藥領域的重要性。", ref: "-", id: "p3w2d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 11,
+                        title: "Mpro 抑制劑設計策略 (Mpro Inhibitor Design Strategies)",
+                        weeklyGoal: "深入了解針對SARS-CoV-2 Mpro設計抑制劑的各種化學策略和思路，包括共價抑制劑與非共價抑制劑的設計考量、擬肽類與非肽類小分子的開發，以及針對Mpro保守區域或變異位點的應對策略，並熟悉代表性Mpro抑制劑 (如Nirmatrelvir) 的結構特點和作用機制。",
+                        days: [
+                            { day: 76, date: "2025/11/15", task: "深入閱讀文獻 [1] 和 [1] 中關於SARS-CoV-2 Mpro抑制劑開發策略的部分。了解Mpro抑制劑可以大致分為共價抑制劑和非共價抑制劑。", goal: "理解共價抑制劑通常通過與活性位點的Cys145形成共價鍵來發揮作用，而非共價抑制劑則通過氫鍵、疏水作用等非共價相互作用與活性位點結合。", ref: "[1]", id: "p3w3d1" },
+                            { day: 77, date: "2025/11/16", task: "學習Nirmatrelvir (PF-07321332，Paxlovid的活性成分之一) 的作用機制。Nirmatrelvir是一種擬肽類共價抑制劑，其腈基 (nitrile) 彈頭可與Mpro的Cys145形成可逆的共價加合物 [22, 26]。", goal: "掌握Nirmatrelvir的化學結構特點及其與Mpro活性位點的詳細相互作用模式，特別是與Cys145的共價作用方式。", ref: "[22, 26]", id: "p3w3d2" },
+                            { day: 78, date: "2025/11/17", task: "學習Mpro抑制劑設計中的「骨架鍵合理念」(Backbone Bonding Concept) 策略，即通過增強小分子與靶蛋白骨架原子間的氫鍵來提高藥物的親和力和抗耐藥性 [1]。", goal: "理解靶向蛋白質主鏈相互作用可以減少因側鏈突變導致的耐藥性，因為主鏈構象相對保守。Pomotrelvir是一個應用此策略的例子 [1]。", ref: "[1]", id: "p3w3d3" },
+                            { day: 79, date: "2025/11/18", task: "學習「最大化佔據位點」策略和「底物包絡」假說在Mpro抑制劑設計中的應用 [1]。", goal: "理解充分佔據結合口袋並與周圍殘基形成多重有效相互作用有助於提高抑制劑活性；設計與天然底物輪廓相似且不超出「底物包絡」的抑制劑可能減少耐藥性的產生。", ref: "[1]", id: "p3w3d4" },
+                            { day: 80, date: "2025/11/19", task: "了解針對Mpro的其他抑制劑設計策略，如PROTACs (蛋白水解靶向嵌合體)、變構位點抑制劑、以及雙靶點抑制劑 (如同時靶向Mpro和組織蛋白酶L) [1]。", goal: "拓寬對現代藥物設計新技術和新思路的認識，了解藥物化學家如何應對病毒突變和耐藥性挑戰。", ref: "[1]", id: "p3w3d5" },
+                            { day: 81, date: "2025/11/20", task: "閱讀關於Mpro抑制劑耐藥機制的研究，例如E166V、L50F等突變如何影響抑制劑的結合 [1]。", goal: "理解病毒突變是藥物開發面臨的持續挑戰，抗耐藥性是抑制劑設計需要考慮的重要因素。", ref: "[1]", id: "p3w3d6" },
+                            { day: 82, date: "2025/11/21", task: "休息與反思。思考在Mpro抑制劑設計中，如何在效力、選擇性、藥代動力學特性和抗耐藥性之間取得平衡。", goal: "體會藥物設計的複雜性和多維度考量。", ref: "-", id: "p3w3d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 12,
+                        title: "虛擬篩選與分子對接導論 (Introduction to Virtual Screening and Molecular Docking)",
+                        weeklyGoal: "理解虛擬篩選 (Virtual Screening, VS) 的基本原理、主要類型 (基於結構VS和基於配體VS) 及其在藥物發現中的優勢；重點學習分子對接 (Molecular Docking) 的核心概念、一般流程、常用軟體以及結果評估方法。",
+                        days: [
+                            { day: 83, date: "2025/11/22", task: "閱讀 [2] 中關於虛擬篩選的介紹。了解虛擬篩選是利用計算方法從大規模化合物庫中快速篩選潛在活性化合物的技術。", goal: "理解虛擬篩選相比於傳統高通量實驗篩選的優勢，如成本低、速度快、可以處理更大的化合物庫。", ref: "[2]", id: "p3w4d1" },
+                            { day: 84, date: "2025/11/23", task: "學習虛擬篩選的兩種主要策略：基於結構的虛擬篩選 (Structure-Based Virtual Screening, SBVS) 和基於配體的虛擬篩選 (Ligand-Based Virtual Screening, LBVS) [2]。", goal: "理解SBVS依賴於靶點蛋白的三維結構，通過分子對接等方法預測小分子與靶點的結合模式和親和力；LBVS則在靶點結構未知或不可用時，基於已知活性配體的結構和性質信息來篩選相似的化合物。本計畫將聚焦於SBVS。", ref: "[2]", id: "p3w4d2" },
+                            { day: 85, date: "2025/11/24", task: "學習分子對接 (Molecular Docking) 的基本概念。了解分子對接是預測小分子配體如何與大分子受體 (如蛋白質) 結合的計算方法，其目標是找到能量上最優的結合構象 (pose) 並評估其結合強度 (打分) [3, 9]。", goal: "掌握分子對接的核心思想：「鎖鑰模型」和「誘導契合模型」是其理論基礎 [3]。", ref: "[3, 9]", id: "p3w4d3" },
+                            { day: 86, date: "2025/11/25", task: "學習分子對接的一般流程。閱讀 [3] 中列出的步驟：1. 受體準備；2. 配體準備；3. 選擇結合位點 (定義對接盒子)；4. 設置對接參數；5. 運行對接；6. 結果分析與驗證。", goal: "熟悉分子對接的標準操作流程，為後續實作做好準備。", ref: "[3]", id: "p3w4d4" },
+                            { day: 87, date: "2025/11/26", task: "了解分子對接中常用的軟體，如AutoDock Vina, AutoDock, DOCK, Glide, MOE等 [3]。本計畫將選用免費且廣泛使用的AutoDock Vina。", goal: "知道存在多種分子對接工具，並對即將使用的AutoDock Vina有初步印象。", ref: "[3]", id: "p3w4d5" },
+                            { day: 88, date: "2025/11/27", task: "學習分子對接結果的評估方法，主要是打分函數 (Scoring function) 的概念。了解打分函數用於估計配體與受體結合的親和力 (如結合自由能)，得分越低 (或越高，取決於軟體) 通常表示結合越好 [9]。", goal: "理解對接打分的意義，知道它是評價對接結果好壞的主要依據之一。", ref: "[9]", id: "p3w4d6" },
+                            { day: 89, date: "2025/11/28", task: "休息與反思。思考計算機模擬在現代科學研究，特別是藥物開發中的力量與局限性。", goal: "培養對計算方法的客觀認識。", ref: "-", id: "p3w4d7" },
+                            { day: 90, date: "2025/11/29", task: "月底總結與回顧。整理本月藥物開發流程、酶抑制劑原理、Mpro抑制劑策略以及虛擬篩選與分子對接導論的學習內容。", goal: "確保對藥物篩選的理論基礎有清晰的理解，為下個月的實作做好充分準備。", ref: "-", id: "p3w4d8" },
+                            { day: 91, date: "2025/11/30", task: "完成Phase 3月度學習評量測驗卷。", goal: "檢驗本月學習成果，特別是對抑制劑原理和虛擬篩選概念的掌握。", ref: "-", id: "p3w4d9" },
+                        ]
+                    }
+                ]
+            },
+            {
+                phase: "Phase 4: 虛擬抑制劑開發實作 (Practical Virtual Inhibitor Development)",
+                duration: "2025年12月1日 - 2025年12月31日 (Month 4)",
+                monthlyGoal: "親自動手實踐基於結構的虛擬藥物篩選流程。學習並熟練使用AutoDock Tools (ADT) 進行受體和配體的預處理 (轉換為pdbqt格式)，使用AutoDock Vina執行分子對接計算，並利用PyMOL或ChimeraX對接結果進行視覺化分析和初步的相互作用模式判讀。此階段是將理論知識轉化為實踐技能的核心環節，也是整個自主學習計畫中最具挑戰和成就感的部分。選擇這些免費且廣泛使用的工具，旨在讓學生在有限的資源下也能體驗到科研級的計算模擬。",
+                weeks: [
+                    {
+                        weekNum: 13,
+                        title: "AutoDock Vina 環境準備與受體處理 (AutoDock Vina Setup and Receptor Preparation)",
+                        weeklyGoal: "成功在本機電腦上安裝AutoDock Tools (ADT) 和AutoDock Vina軟體包。從PDB資料庫下載選定的SARS-CoV-2 Mpro晶體結構，並使用ADT或PyMOL/ChimeraX對其進行預處理，包括去除水分子和原有配體、檢查並修補可能的缺失原子或殘基、加氫等，最終將處理好的受體結構轉換為AutoDock Vina所需的pdbqt格式檔案。",
+                        days: [
+                            { day: 92, date: "2025/12/01", task: "訪問AutoDock Suite官方網站 (如vina.scripps.edu, mgltools.scripps.edu) 或相關資源，下載最新版本的AutoDock Tools (通常包含在MGLTools包中) 和AutoDock Vina。參考官方文檔或教學 [8, 10] 完成軟體的安裝與基本配置。", goal: "成功安裝ADT和Vina，並確保能夠從命令列或圖形介面啟動。", ref: "[8, 10]", id: "p4w1d1" },
+                            { day: 93, date: "2025/12/02", task: "選擇一個合適的SARS-CoV-2 Mpro晶體結構作為受體進行後續對接。建議選擇解析度較高、且已與抑制劑結合的結構，以便參考活性位點位置，如PDB ID: 6LU7 [20, 21]。從RCSB PDB下載其PDB格式檔案。", goal: "獲取用於分子對接的原始受體結構檔案。", ref: "[20, 21]", id: "p4w1d2" },
+                            { day: 94, date: "2025/12/03", task: "使用PyMOL或ChimeraX對下載的PDB檔案進行預處理：去除所有水分子 (HOH)；如果結構中包含原有的配體或輔助因子，也應將其移除 (或單獨保存以供參考)；檢查是否有斷裂的肽鏈或缺失的側鏈原子 (對於初學者，可選擇較完整的結構以簡化此步驟)。", goal: "得到一個「乾淨」的、僅包含Mpro蛋白本身的PDB檔案。", ref: "PyMOL/ChimeraX", id: "p4w1d3" },
+                            { day: 95, date: "2025/12/04", task: "學習使用AutoDock Tools (ADT) 圖形介面對蛋白質進行加氫、計算Gasteiger電荷、合併非極性氫以及設定原子類型，並最終將處理後的蛋白質結構保存為pdbqt格式。這是AutoDock Vina進行對接計算所必需的輸入檔案格式 [10]。", goal: "成功將預處理後的Mpro PDB檔案轉換為Mpro.pdbqt檔案。理解pdbqt格式包含了原子座標、電荷和AutoDock原子類型等資訊。", ref: "[10]", id: "p4w1d4" },
+                            { day: 96, date: "2025/12/05", task: "再次檢查生成的Mpro.pdbqt檔案，確保沒有明顯錯誤。可嘗試在PyMOL/ChimeraX中打開pdbqt檔案，觀察其與原PDB檔案的差異 (如增加了氫原子)。", goal: "熟悉受體準備的完整流程，確保輸入檔案的質量。", ref: "PyMOL/ChimeraX", id: "p4w1d5" },
+                            { day: 97, date: "2025/12/06", task: "複習本週AutoDock Vina環境搭建和受體準備的流程。整理操作步驟和注意事項。", goal: "熟練掌握受體準備的每一步操作，為後續配體準備和對接打下基礎。", ref: "-", id: "p4w1d6" },
+                            { day: 98, date: "2025/12/07", task: "休息與反思。思考受體結構的質量對分子對接結果可能產生的影響。", goal: "培養對實驗細節嚴謹性的認識。", ref: "-", id: "p4w1d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 14,
+                        title: "配體庫準備與對接盒子設定 (Ligand Library Preparation and Docking Box Setup)",
+                        weeklyGoal: "學習如何從公共化合物資料庫 (如ZINC) 或其他來源獲取小分子配體的結構檔案 (通常為SDF或MOL2格式)；使用ADT或Open Babel等工具將這些配體結構轉換為AutoDock Vina所需的pdbqt格式，包括加氫、計算電荷和設定可旋轉鍵；並根據Mpro的活性位點位置，在ADT中精確定義分子對接的搜索空間 (即對接盒子 Grid Box)。",
+                        days: [
+                            { day: 99, date: "2025/12/08", task: "了解常用的公開小分子化合物資料庫，如ZINC (zinc.docking.org)、PubChem。學習如何在這些資料庫中根據化學性質或關鍵詞搜索並下載小分子結構檔案 (SDF或MOL2格式)。", goal: "掌握獲取小分子配體結構數據的途徑。選擇5-10個結構不同的小分子作為初步的配體庫。", ref: "ZINC, PubChem", id: "p4w2d1" },
+                            { day: 100, date: "2025/12/09", task: "學習使用AutoDock Tools (ADT) 或命令行工具Open Babel對下載的配體SDF/MOL2檔案進行預處理並轉換為pdbqt格式。這通常包括加氫、計算Gasteiger電荷 (或AM1-BCC等更精確的電荷，但Gasteiger對初學者友好)、檢測並設定芳香性、以及定義可旋轉鍵 (torsions) [10]。", goal: "成功將選擇的5-10個小分子轉換為各自的pdbqt檔案 (如ligand1.pdbqt, ligand2.pdbqt...)。理解配體準備中電荷和可旋轉鍵的重要性。", ref: "[10], Open Babel", id: "p4w2d2" },
+                            { day: 101, date: "2025/12/10", task: "在AutoDock Tools中載入之前準備好的Mpro.pdbqt受體檔案。參考原始PDB結構中抑制劑的位置 (如6LU7中的N3)，或根據文獻報道的活性位點殘基 (Cys145, His41)，確定對接盒子的中心。", goal: "準確定位Mpro的活性位點區域。", ref: "ADT, PDB:6LU7", id: "p4w2d3" },
+                            { day: 102, date: "2025/12/11", task: "學習在ADT中使用Grid Box功能設定對接盒子的中心座標 (center_x, center_y, center_z) 和尺寸大小 (size_x, size_y, size_z，單位通常是Å埃)。盒子的大小應足夠容納配體分子在活性位點內自由旋轉和平移，但不宜過大以節省計算時間 [9, 10]。", goal: "設定一個合理的對接盒子，並記錄下盒子參數。可以將這些參數寫入一個Vina的配置文件 (如conf.txt)。", ref: "[9, 10]", id: "p4w2d4" },
+                            { day: 103, date: "2025/12/12", task: "練習調整對接盒子的位置和大小，觀察其是否能良好地覆蓋整個活性口袋。可將盒子參數可視化顯示在ADT中。", goal: "確保對接盒子設定的準確性和合理性。", ref: "ADT", id: "p4w2d5" },
+                            { day: 104, date: "2025/12/13", task: "複習本週配體準備和對接盒子設定的流程。確保所有配體檔案和盒子參數都已準備就緒。", goal: "熟練掌握對接前的所有準備工作。", ref: "-", id: "p4w2d6" },
+                            { day: 105, date: "2025/12/14", task: "休息與反思。思考配體的柔性 (可旋轉鍵) 和對接空間的定義如何影響對接搜索的複雜度和結果。", goal: "理解對接參數設定的考量。", ref: "-", id: "p4w2d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 15,
+                        title: "執行分子對接與初步結果觀察 (Running Molecular Docking and Initial Result Observation)",
+                        weeklyGoal: "學習編寫AutoDock Vina的配置文件 (conf.txt) 或直接使用命令列參數，對準備好的每一個配體與Mpro受體執行分子對接計算。學習如何查看Vina的輸出日誌檔案 (log file) 和結果檔案 (通常也是pdbqt格式，包含對接後的配體構象)，並提取主要的對接結果，如結合親和力 (Affinity) 打分。",
+                        days: [
+                            { day: 106, date: "2025/12/15", task: "學習AutoDock Vina的命令列用法和配置文件 (conf.txt) 的編寫。配置文件通常包含受體檔案路徑、配體檔案路徑、輸出檔案名稱、以及對接盒子的中心和尺寸參數等 [8, 10]。", goal: "能夠為單個配體-受體對接任務編寫一個完整的Vina配置文件。", ref: "[8, 10]", id: "p4w3d1" },
+                            { day: 107, date: "2025/12/16", task: "對第一個準備好的配體執行AutoDock Vina分子對接。在命令列中運行Vina程序，指定配置文件。觀察螢幕輸出或日誌檔案的生成過程。", goal: "成功完成第一次分子對接計算。熟悉Vina的運行方式。", ref: "AutoDock Vina", id: "p4w3d2" },
+                            { day: 108, date: "2025/12/17", task: "查看Vina對接完成後生成的輸出檔案。主要包括一個日誌檔案 (通常以.log結尾) 和一個包含對接後配體多個構象 (modes/poses) 的pdbqt檔案。", goal: "能夠找到並打開這兩個檔案。從日誌檔案中找到每個構象的結合親和力 (Affinity, 單位通常為kcal/mol)，以及與RMSD相關的資訊。AutoDock Vina的Affinity值越負，表示結合力越強 [9]。", ref: "[9]", id: "p4w3d3" },
+                            { day: 109, date: "2025/12/18", task: "對剩餘的4-9個配體逐一執行分子對接計算。可以編寫簡單的腳本 (如shell script或python script) 來自動化此過程，也可以手動逐個運行。", goal: "完成對所有選定配體的分子對接。", ref: "AutoDock Vina", id: "p4w3d4" },
+                            { day: 110, date: "2025/12/19", task: "整理所有配體的對接結果。為每個配體記錄其對接後得到的最低結合能 (即親和力最好的構象的得分)。製作一個簡單的表格比較不同配體的結合能。", goal: "初步篩選出與Mpro結合潛力較好的配體。", ref: "-", id: "p4w3d5" },
+                            { day: 111, date: "2025/12/20", task: "複習本週執行分子對接和初步結果觀察的流程。思考Vina輸出結果中除了結合能之外，其他資訊 (如RMSD_lb, RMSD_ub) 的可能含義。", goal: "鞏固對Vina軟體操作和結果輸出的理解。", ref: "-", id: "p4w3d6" },
+                            { day: 112, date: "2025/12/21", task: "休息與反思。思考分子對接作為一種預測工具，其結果的可靠性與局限性。", goal: "培養對計算結果的批判性思維。", ref: "-", id: "p4w3d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 16,
+                        title: "對接結果分析與視覺化 (Docking Result Analysis and Visualization)",
+                        weeklyGoal: "學習使用PyMOL或ChimeraX等分子視覺化軟體，載入對接得到的受體-配體複合物結構 (特別是打分最高的幾個構象)，詳細觀察配體在Mpro活性位點的結合模式 (binding mode/pose)，並分析配體與受體之間形成的關鍵分子間相互作用，如氫鍵、疏水作用、π-π堆積等。",
+                        days: [
+                            { day: 113, date: "2025/12/22", task: "選擇一個或幾個在上一週對接中結合能得分較好的配體。在PyMOL/ChimeraX中同時載入Mpro受體的pdbqt檔案和該配體對接後輸出結果中的最佳構象 (通常是第一個mode) 的pdbqt檔案。", goal: "成功將受體和對接後的配體構象在同一視窗中顯示，並調整視角以便觀察活性位點區域。", ref: "PyMOL/ChimeraX", id: "p4w4d1" },
+                            { day: 114, date: "2025/12/23", task: "仔細觀察配體分子在Mpro活性位點中的空間位置和取向。比較其與原始晶體結構中抑制劑 (如6LU7中的N3) 的結合位置是否有相似之處。", goal: "形成對配體結合模式的直觀印象。", ref: "PyMOL/ChimeraX, PDB:6LU7", id: "p4w4d2" },
+                            { day: 115, date: "2025/12/24", task: "學習使用PyMOL/ChimeraX的內建功能來識別和顯示分子間的氫鍵。重點觀察配體分子上的氫鍵供體/受體原子與Mpro活性位點周圍殘基 (如Cys145, His41, His163, Glu166等) 之間形成的氫鍵網絡。", goal: "找出並記錄配體與受體之間形成的關鍵氫鍵，這些通常對結合親和力有重要貢獻。", ref: "PyMOL/ChimeraX", id: "p4w4d3" },
+                            { day: 116, date: "2025/12/25", task: "分析配體與Mpro活性位點之間的疏水相互作用。觀察配體的疏水部分是否與受體的疏水性殘基 (如Met49, Leu141, Met165等) 形成良好的疏水接觸。", goal: "評估疏水作用在配體結合中的貢獻。", ref: "PyMOL/ChimeraX", id: "p4w4d4" },
+                            { day: 117, date: "2025/12/26", task: "如果配體和受體中存在芳香環，檢查是否存在π-π堆積或其他芳香相互作用。", goal: "識別其他可能的非共價相互作用類型。", ref: "PyMOL/ChimeraX", id: "p4w4d5" },
+                            { day: 118, date: "2025/12/27", task: "對觀察到的有意義的結合模式和關鍵相互作用進行截圖，並在圖上進行標註 (如標出氫鍵、參與相互作用的殘基名稱等)。這些圖像將是最終報告的重要組成部分。", goal: "製作清晰、信息豐富的分子相互作用圖。", ref: "PyMOL/ChimeraX", id: "p4w4d6" },
+                            { day: 119, date: "2025/12/28", task: "休息與反思。總結通過視覺化分析獲得的關於配體-受體相互作用的理解。思考如何基於這些觀察來改進配體分子的設計 (雖然本計畫不涉及實際改進)。", goal: "培養從結構相互作用角度理解藥物作用機制的思維。", ref: "-", id: "p4w4d7" },
+                            { day: 120, date: "2025/12/29", task: "月底總結與回顧。整理本月虛擬抑制劑開發實作的所有數據、圖像和筆記。", goal: "確保所有實驗結果都已妥善記錄和初步分析，為最後的報告撰寫做好準備。", ref: "-", id: "p4w4d8" },
+                            { day: 121, date: "2025/12/30", task: "完成Phase 4月度學習評量測驗卷。", goal: "檢驗本月學習成果，特別是對AutoDock Vina操作和對接結果分析的掌握程度。", ref: "-", id: "p4w4d9" },
+                            { day: 122, date: "2025/12/31", task: "預留彈性學習日。可用於重新進行某些對接計算，或對結果進行更細緻的分析。", goal: "確保實作部分的完整性和質量。", ref: "-", id: "p4w4d10" },
+                        ]
+                    }
+                ]
+            },
+            {
+                phase: "Phase 5: 結果整理、反思與報告撰寫 (Result Consolidation, Reflection & Report Writing)",
+                duration: "2026年1月1日 - 2026年1月15日 (Month 4.5 - 約2.5週)",
+                monthlyGoal: "系統性地整理和總結前四個階段的所有學習內容、研究筆記、實驗數據和分析結果；根據自主學習計畫的六個頁籤要求，完成最終報告的撰寫、修訂與潤色；並進行深入的學習心得反思，全面回顧整個自主學習過程的收穫、挑戰與啟示。此階段是將分散的知識點和實踐經驗整合為一份有條理、有深度的學術成果的關鍵步驟，也是展現學習能力和研究潛力的重要環節。",
+                weeks: [
+                    {
+                        weekNum: 17,
+                        title: "數據整理與報告初稿 (Data Consolidation and Draft Report Writing)",
+                        weeklyGoal: "彙總所有文獻研讀筆記、Mpro結構功能分析資料、分子對接實驗的原始數據、處理後的結果表格、以及視覺化分析的截圖和註解。根據先前規劃的六個頁籤 (首頁、學習規畫、學習評量、學習內容、心得反思、參考資料) 的框架，開始撰寫報告各主要部分的初稿。",
+                        days: [
+                            { day: 123, date: "2026/01/01", task: "整理Phase 1和Phase 2的學習筆記，重點是關於細胞生物學、病毒學、蛋白質化學、Mpro結構與功能的知識點。開始撰寫「首頁」部分的「研究動機與背景」和「研究目標」。", goal: "完成「首頁」核心內容的初稿，清晰闡述研究的緣由和預期達成的目標。", ref: "-", id: "p5w1d1" },
+                            { day: 124, date: "2026/01/02", task: "整理Phase 3的學習筆記，關於藥物開發流程、酶抑制劑原理、Mpro抑制劑設計策略和虛擬篩選概念。繼續完善「首頁」的「預期學習成效與收穫」。", goal: "完成「首頁」所有內容的初稿。", ref: "-", id: "p5w1d2" },
+                            { day: 125, date: "2026/01/03", task: "整理整個學習計畫的每日任務記錄，開始構建「學習內容」頁籤的每日學習任務總表。將之前記錄的日期、階段、週次、天次、學習任務、學習目標、參考資料等信息填入表格草稿。", goal: "完成「學習內容」表格的初步框架和大部分數據填充。", ref: "-", id: "p5w1d3" },
+                            { day: 126, date: "2026/01/04", task: "整理所有參考過的文獻、書籍、網站連結等，開始編撰「參考資料」頁籤的列表。注意格式的統一性和連結的有效性，優先列出中文及可下載資源。", goal: "完成「參考資料」列表的初稿。", ref: "-", id: "p5w1d4" },
+                            { day: 127, date: "2026/01/05", task: "整理Phase 4虛擬抑制劑開發實作的數據和圖像，包括受體/配體準備步驟、對接盒子參數、Vina輸出結果 (結合能表格)、以及PyMOL/ChimeraX分析的相互作用圖。開始撰寫描述這部分實作過程和結果的文字內容，這將是報告的核心技術部分，可考慮在「學習內容」的相關任務描述中詳細闡述，或在「心得反思」中提及。", goal: "完成虛擬篩選實作部分的文字描述和圖表整理初稿。", ref: "-", id: "p5w1d5" },
+                            { day: 128, date: "2026/01/06", task: "根據之前各階段的學習評量測驗卷題目和作答情況，整理「學習評量」頁籤的內容，包括測驗題目、答案以及對評量結果的分析評論草稿。", goal: "完成「學習評量」頁籤的內容初稿。", ref: "-", id: "p5w1d6" },
+                            { day: 129, date: "2026/01/07", task: "休息與反思。回顧已完成的初稿內容，思考結構是否清晰，邏輯是否連貫。", goal: "為後續的修訂和完善做準備。", ref: "-", id: "p5w1d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 18, 
+                        title: "報告修訂、心得撰寫與最終檢查 (Report Revision, Reflection Writing, and Final Review) - Part 1",
+                        weeklyGoal: "全面修訂和完善報告各部分的內容，確保語言表達準確流暢、科學術語使用恰當、圖表清晰易懂。根據指導性提示，撰寫約1500字的「心得反思」。進行多次校對，檢查格式、連結、圖片等細節，確保報告的整體質量，並為將內容轉換為網頁應用程式做好最終準備。",
+                        days: [
+                            { day: 130, date: "2026/01/08", task: "仔細閱讀並修訂「首頁」和「學習規畫」部分的初稿。檢查文字表述是否清晰，邏輯是否通順。", goal: "完成「首頁」和「學習規畫」部分的修訂。", ref: "-", id: "p5w2d1" },
+                            { day: 131, date: "2026/01/09", task: "仔細閱讀並修訂「學習內容」表格和「學習評量」部分的初稿。確保每日任務描述清晰完整，評量分析客觀中肯。", goal: "完成「學習內容」和「學習評量」部分的修訂。", ref: "-", id: "p5w2d2" },
+                            { day: 132, date: "2026/01/10", task: "開始撰寫「心得反思」部分。根據Tab 5中提供的指導性提示，回顧整個學習過程，深入思考知識技能的成長、遇到的挑戰與克服方法、對科學研究的體悟、以及對未來的展望。力求內容真實、感悟深刻。", goal: "完成「心得反思」部分的初稿 (約1500字)。", ref: "-", id: "p5w2d3" },
+                            { day: 133, date: "2026/01/11", task: "修訂「心得反思」部分的初稿，確保內容充實、表達流暢、符合字數要求。同時，修訂「參考資料」列表，檢查格式和連結的準確性。", goal: "完成「心得反思」和「參考資料」部分的修訂。", ref: "-", id: "p5w2d4" },
+                            { day: 134, date: "2026/01/12", task: "進行報告的整體通讀和第一輪校對。檢查是否有語法錯誤、錯別字、術語使用不當等問題。檢查圖表是否清晰，標題和圖註是否完整。", goal: "提升報告的整體質量和專業性。", ref: "-", id: "p5w2d5" },
+                            { day: 135, date: "2026/01/13", task: "進行報告的第二輪校對，特別注意各部分之間的邏輯連貫性和內容的一致性。確保所有要求的功能 (如進度追蹤描述) 都已包含在內。", goal: "確保報告內容完整、準確、無遺漏。", ref: "-", id: "p5w2d6" },
+                            { day: 136, date: "2026/01/14", task: "最終檢查報告的所有細節，包括頁面排版 (雖然最終是網頁，但文檔的結構應清晰)、圖片插入、連結有效性等。模擬評審教授的視角審視報告。", goal: "確保報告達到提交標準。", ref: "-", id: "p5w2d7" },
+                        ]
+                    },
+                    {
+                        weekNum: 19, 
+                        title: "報告修訂、心得撰寫與最終檢查 (Report Revision, Reflection Writing, and Final Review) - Part 2",
+                        weeklyGoal: "完成自主學習計畫的全部研究與報告撰寫工作。",
+                         days: [
+                            { day: 137, date: "2026/01/15", task: "自主學習計畫報告內容定稿。整理所有文字、圖片、表格等素材，準備用於後續的網頁應用程式製作。", goal: "成功完成自主學習計畫的全部研究與報告撰寫工作。", ref: "-", id: "p5w3d1" }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // Quiz Data
+        const quizzesData = [
+            {
+                phase: 1,
+                title: "測驗卷1 (對應Phase 1: 基礎知識建立)",
+                scope: "細胞生物學基礎 (細胞結構與功能、生命大分子)、病毒學入門 (病毒特性、冠狀病毒結構)、蛋白質化學基礎 (胺基酸、蛋白質結構層次)、酵素學基礎 (酵素定義、特性、影響因素)。",
+                questions: [
+                    { q: "1. 下列何者是SARS-CoV-2病毒的主要結構蛋白，並負責與宿主細胞受體ACE2結合，介導病毒入侵？ [1, 13]", o: ["(A) 膜蛋白 (M protein)", "(B) 刺突蛋白 (S protein)", "(C) 核衣殼蛋白 (N protein)", "(D) 包膜蛋白 (E protein)"], a: 1 },
+                    { q: "2. 蛋白質的二級結構主要通過哪種化學鍵來維持？", o: ["(A) 肽鍵", "(B) 氫鍵", "(C) 二硫鍵", "(D) 疏水作用"], a: 1 },
+                    { q: "3. 下列關於酶(酵素)的敘述，何者**錯誤**？", o: ["(A) 酶能降低化學反應的活化能", "(B) 酶的催化活性受溫度和pH值的影響", "(C) 酶在反應前後其化學性質不發生改變", "(D) 一種酶通常能催化多種不同類型的化學反應"], a: 3 },
+                    { q: "4. SARS-CoV-2 屬於哪一類病毒？", o: ["(A) DNA病毒", "(B) RNA病毒", "(C) 反轉錄病毒", "(D) 朊病毒"], a: 1},
+                    { q: "5. 細胞的「能量工廠」是指哪個胞器？", o: ["(A) 細胞核", "(B) 核糖體", "(C) 粒線體", "(D) 內質網"], a: 2},
+                    { q: "6. 胺基酸之間通過什麼鍵連接形成蛋白質？", o: ["(A) 氫鍵", "(B) 肽鍵", "(C) 糖苷鍵", "(D) 磷酸二酯鍵"], a: 1},
+                    { q: "7. 病毒在宿主細胞外是否具有生命活性？", o: ["(A) 是", "(B) 否", "(C) 部分具有", "(D) 取決於病毒種類"], a: 1},
+                    { q: "8. 酶的活性位點是指？", o: ["(A) 酶分子表面任意位置", "(B) 與底物結合併發生催化反應的特定區域", "(C) 酶的輔助因子結合位點", "(D) 酶的調節劑結合位點"], a: 1},
+                    { q: "9. 冠狀病毒的遺傳物質是什麼？", o: ["(A) 單股DNA", "(B) 雙股DNA", "(C) 單股RNA", "(D) 雙股RNA"], a: 2},
+                    { q: "10. 細胞膜的主要組成成分不包括？", o: ["(A) 磷脂雙分子層", "(B) 蛋白質", "(C) 核酸", "(D) 膽固醇"], a: 2}
+                ],
+                analysis: "本次測驗主要考察基礎生物學、病毒學及蛋白質酵素學的基本概念。若在S蛋白功能、蛋白質二級結構維持鍵、酶的特異性等方面有誤，建議加強複習Phase 1 Week 1-3的相關內容。"
+            },
+            {
+                phase: 2,
+                title: "測驗卷2 (對應Phase 2: Mpro 結構與功能深入探討)",
+                scope: "SARS-CoV-2 Mpro的三維結構特徵 (單體結構域、二聚體)、活性位點組成 (Cys145-His41催化二聯體、底物結合腔)、催化機制、PDB資料庫的使用方法、分子視覺化軟體 (PyMOL/ChimeraX) 的基本操作。",
+                questions: [
+                    { q: "1. SARS-CoV-2 Mpro的活性位點主要由哪兩個胺基酸殘基組成催化二聯體 (catalytic dyad)？ [1]", o: ["(A) Cys145 & His41", "(B) Ser195 & His57", "(C) Asp32 & Asp215", "(D) Lys88 & Tyr172"], a: 0 },
+                    { q: "2. 在PDB (Protein Data Bank) 檔案格式中，哪種類型的記錄 (Record Type) 用於描述蛋白質分子中標準胺基酸殘基的原子座標？ [5]", o: ["(A) HEADER", "(B) HETATM", "(C) ATOM", "(D) SEQRES"], a: 2 },
+                    { q: "3. 使用分子視覺化軟體 (如PyMOL) 觀察蛋白質結構時，下列哪種顯示樣式最適合展示蛋白質的整體摺疊和二級結構元件 (如α-螺旋和β-折疊)？", o: ["(A) 球狀 (Spheres)", "(B) 線條 (Lines)", "(C) 卡通 (Cartoon)", "(D) 表面 (Surface)"], a: 2 },
+                    { q: "4. SARS-CoV-2 Mpro 通常以何種形式發揮其催化活性？", o: ["(A) 單體", "(B) 同源二聚體", "(C) 異源二聚體", "(D) 四聚體"], a: 1},
+                    { q: "5. PDB資料庫主要儲存的是大生物分子的什麼資訊？", o: ["(A) 基因序列", "(B) 代謝途徑", "(C) 三維結構座標", "(D) 生理功能描述"], a: 2},
+                    { q: "6. Mpro催化肽鍵水解的機制屬於哪一類蛋白酶？", o: ["(A) 絲氨酸蛋白酶", "(B) 半胱氨酸蛋白酶", "(C) 天冬氨酸蛋白酶", "(D) 金屬蛋白酶"], a: 1},
+                    { q: "7. 在PyMOL或ChimeraX中，選取特定胺基酸殘基後，通常可以對其進行哪些操作？", o: ["(A) 只能改變顏色", "(B) 只能測量距離", "(C) 可以改變顯示樣式、顏色、高亮等", "(D) 只能刪除該殘基"], a: 2},
+                    { q: "8. Mpro的Domain III主要參與什麼功能？", o: ["(A) 直接催化反應", "(B) 底物結合", "(C) 調節二聚體的形成和穩定性", "(D) 與宿主細胞膜結合"], a: 2},
+                    { q: "9. PDB ID (如6LU7) 代表什麼？", o: ["(A) 一種蛋白質的通用名稱", "(B) PDB資料庫中的一個特定結構條目", "(C) 一篇學術論文的編號", "(D) 一種化學藥物的代號"], a: 1},
+                    { q: "10. Mpro的S1底物結合口袋對哪種胺基酸具有偏好性？", o: ["(A) 丙氨酸 (Ala)", "(B) 亮氨酸 (Leu)", "(C) 谷氨酰胺 (Gln)", "(D) 色氨酸 (Trp)"], a: 2}
+                ],
+                analysis: "本次測驗重點在Mpro的結構細節、催化機制以及相關生物資訊學工具的基本應用。若在催化二聯體、PDB記錄類型或分子視覺化軟體操作方面有疑問，請複習Phase 2 Week 5-8的內容，特別是實際操作PDB和PyMOL/ChimeraX的練習。"
+            },
+            {
+                phase: 3,
+                title: "測驗卷3 (對應Phase 3: 藥物開發與抑制劑原理)",
+                scope: "新藥開發的基本流程與階段、酶抑制劑的類型 (可逆/不可逆、競爭性/非競爭性等) 及其對酶動力學的影響、IC50值的概念、針對Mpro的抑制劑設計策略 (如共價抑制、擬肽類、PROTACs)、虛擬篩選 (SBVS/LBVS) 與分子對接的基本概念。",
+                questions: [
+                    { q: "1. 虛擬篩選 (Virtual Screening) 在現代藥物開發流程中主要應用於哪個階段，以期達到何種目的？ [2]", o: ["(A) 臨床I期試驗，評估藥物安全性", "(B) 藥物發現與先導化合物確認，快速從大規模化合物庫中篩選潛在活性分子", "(C) 藥物上市後監測，收集不良反應數據", "(D) 製程優化，提高藥物產量"], a: 1 },
+                    { q: "2. Nirmatrelvir (Paxlovid的活性成分之一) 是一種針對SARS-CoV-2 Mpro的抑制劑，其作用機制主要是： [22, 26]", o: ["(A) 非競爭性地結合Mpro的變構位點", "(B) 作為競爭性抑制劑與天然底物搶奪活性位點，但不發生共價反應", "(C) 其腈基彈頭與Mpro活性位點的Cys145形成可逆的共價鍵", "(D) 誘導Mpro蛋白降解"], a: 2 },
+                    { q: "3. 若一種可逆抑制劑的加入使得酶促反應的$V_{max}$降低，而$K_m$值不變，則此抑制劑最可能屬於哪種類型？", o: ["(A) 競爭性抑制劑", "(B) 非競爭性抑制劑", "(C) 反競爭性抑制劑", "(D) 底物類似物"], a: 1 },
+                    { q: "4. IC50值代表什麼？", o: ["(A) 抑制劑的最大溶解度", "(B) 抑制劑達到最大抑制效果所需時間的一半", "(C) 抑制特定生物學功能50%所需的抑制劑濃度", "(D) 抑制劑的分子量的一半"], a: 2},
+                    { q: "5. 基於結構的虛擬篩選 (SBVS) 主要依賴於？", o: ["(A) 已知活性配體的化學結構", "(B) 靶點蛋白的三維結構", "(C) 化合物的物理化學性質", "(D) 基因表達數據"], a: 1},
+                    { q: "6. 新藥開發流程中，臨床前研究的主要目的是？", o: ["(A) 在大規模人群中驗證藥效", "(B) 評估候選藥物在細胞和動物模型上的初步有效性和安全性", "(C) 確定藥物的市場價格", "(D) 設計藥物的包裝"], a: 1},
+                    { q: "7. 競爭性抑制劑對酶促反應動力學的影響是？", o: ["(A) $K_m$增大，$V_{max}$不變", "(B) $K_m$不變，$V_{max}$降低", "(C) $K_m$和$V_{max}$均降低", "(D) $K_m$和$V_{max}$均增大"], a: 0},
+                    { q: "8. 分子對接 (Molecular Docking) 的主要目標是？", o: ["(A) 合成新的化合物", "(B) 預測小分子配體與大分子受體的結合模式和強度", "(C) 測定蛋白質的晶體結構", "(D) 分析蛋白質的胺基酸序列"], a: 1},
+                    { q: "9. PROTACs (蛋白水解靶向嵌合體) 是一種新興的藥物設計策略，其作用機制是？", o: ["(A) 直接抑制靶蛋白活性", "(B) 誘導靶蛋白被細胞自身的蛋白酶體降解", "(C) 增強靶蛋白的穩定性", "(D) 作為基因治療載體"], a: 1},
+                    { q: "10. 「骨架鍵合理念」(Backbone Bonding Concept) 在Mpro抑制劑設計中的一個優勢是？", o: ["(A) 總能獲得活性最強的抑制劑", "(B) 抑制劑更容易合成", "(C) 可能提高對病毒突變的抗性", "(D) 抑制劑的口服生物利用度更高"], a: 2}
+                ],
+                analysis: "本測驗涵蓋藥物開發流程、酶抑制劑原理及虛擬篩選基礎。若在抑制劑類型、動力學影響、Mpro抑制劑策略或虛擬篩選概念上有困難，建議複習Phase 3 Week 9-12的內容，特別是Nirmatrelvir的作用機制和不同虛擬篩選方法的區別。"
+            },
+            {
+                phase: 4,
+                title: "測驗卷4 (對應Phase 4: 虛擬抑制劑開發實作)",
+                scope: "AutoDock Tools (ADT) 和 AutoDock Vina的安裝與基本操作、受體 (pdbqt格式) 和配體 (pdbqt格式) 的準備流程、對接盒子 (Grid Box) 的設定原則、執行Vina對接計算的命令或配置文件、對接結果 (結合親和力Affinity、構象) 的初步判讀、使用PyMOL/ChimeraX視覺化分析對接後複合物的相互作用 (氫鍵、疏水作用)。",
+                questions: [
+                    { q: "1. 在使用AutoDock Vina進行分子對接時，其輸出的結合親和力 (Affinity) 值通常以kcal/mol為單位，該數值的一般解釋是： [9]", o: ["(A) 數值越大，表示結合力越強", "(B) 數值越小 (即越負)，表示結合力越強", "(C) 數值接近零，表示結合力最強", "(D) 該數值與結合力無直接關係，僅用於排序"], a: 1 },
+                    { q: "2. 在準備用於AutoDock Vina對接的受體蛋白質檔案 (pdbqt格式) 時，通常需要進行哪些預處理步驟？ [10]", o: ["(A) 僅需將PDB檔案改後綴名為pdbqt即可", "(B) 去除水分子、加氫、計算原子電荷、設定AutoDock原子類型", "(C) 必須將蛋白質變性後再進行處理", "(D) 只需要保留活性位點周圍的殘基"], a: 1 },
+                    { q: "3. 在分析分子對接結果時，除了關注結合能得分，還應使用分子視覺化軟體觀察配體與受體活性位點的哪些相互作用，以判斷結合模式的合理性？", o: ["(A) 配體的分子量大小", "(B) 配體是否能形成盡可能多的共價鍵", "(C) 氫鍵網絡、疏水相互作用、形狀互補性", "(D) 配體在溶液中的顏色"], a: 2 },
+                    { q: "4. AutoDock Vina對接盒子 (Grid Box) 的大小設定原則是？", o: ["(A) 越大越好，以包含整個蛋白質", "(B) 越小越好，以節省計算時間", "(C) 應足夠覆蓋活性位點並允許配體自由取向，但不宜過大", "(D) 固定為蛋白質分子大小的1/3"], a: 2},
+                    { q: "5. 將配體結構轉換為pdbqt格式時，定義可旋轉鍵 (torsions) 的目的是？", o: ["(A) 減少配體的柔性，加速計算", "(B) 允許配體在對接過程中改變構象，模擬其柔性", "(C) 增加配體的分子量", "(D) 改變配體的電荷分佈"], a: 1},
+                    { q: "6. AutoDock Vina的配置文件 (conf.txt) 通常不包含下列哪個參數？", o: ["(A) 受體文件名 (receptor = ...)", "(B) 配體文件名 (ligand = ...)", "(C) 對接盒子的中心座標 (center_x, center_y, center_z)", "(D) 計算機的CPU核心數 (cpu = ...)"], a: 3},
+                    { q: "7. 在PyMOL/ChimeraX中觀察對接複合物時，識別氫鍵通常依賴於？", o: ["(A) 原子間的顏色差異", "(B) 特定原子對之間的距離和角度標準", "(C) 配體的整體形狀", "(D) 受體的二級結構類型"], a: 1},
+                    { q: "8. AutoDock Vina輸出結果中，每個對接構象 (mode/pose) 通常會提供一個結合親和力值，這個值是？", o: ["(A) 實驗測定的結合自由能", "(B) 打分函數計算得到的估計結合自由能", "(C) 配體的溶解度參數", "(D) 配體的合成難度評分"], a: 1},
+                    { q: "9. 受體準備過程中，「加氫」步驟的目的是？", o: ["(A) 增加蛋白質的分子量", "(B) 使蛋白質帶正電荷", "(C) 補全晶體結構中通常缺失的氫原子，以便更準確地計算相互作用", "(D) 降低蛋白質的柔性"], a: 2},
+                    { q: "10. 如果一個配體對接到活性位點外，或者其結合模式不合理 (如嚴重的原子碰撞)，即使其結合能得分較好，也應該？", o: ["(A) 認為它是一個好的候選藥物", "(B) 忽略結合能，只看結合模式", "(C) 謹慎對待，需要結合視覺檢查和進一步分析來判斷其可靠性", "(D) 直接認定該對接軟體不可靠"], a: 2}
+                ],
+                analysis: "本測驗檢驗虛擬篩選實作的關鍵步驟和概念。若在Vina參數設定、pdbqt檔案準備、或對接結果判讀 (如結合能意義、相互作用分析) 方面存在不足，請務必回顧Phase 4 Week 13-16的內容，並多加練習軟體操作和結果分析。"
+            }
+        ];
+        let dailyProgress = {};
+        let quizScores = [null, null, null, null]; 
+        let quizScoreChartInstance = null;
+
+        
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        
+        const learningPlanDetailsContainer = document.getElementById('learningPlanDetails');
+        const overallProgressBar = document.getElementById('overallProgressBar');
+
+        function renderLearningPlan() {
+            learningPlanDetailsContainer.innerHTML = ''; 
+            let totalTasks = 0;
+            let completedTasks = 0;
+
+            learningPlanData.forEach((phaseData, phaseIndex) => {
+                const phaseElement = document.createElement('details');
+                phaseElement.className = 'bg-slate-700 p-4 rounded-lg shadow';
+                phaseElement.open = phaseIndex === 0; 
+
+                const phaseSummary = document.createElement('summary');
+                phaseSummary.className = 'text-lg font-semibold text-sky-400 cursor-pointer flex justify-between items-center';
+                phaseSummary.innerHTML = `
+                    <span><span class="details-marker"></span>${phaseData.phase} <em class="text-sm text-slate-400">(${phaseData.duration})</em></span>
+                    <span class="phase-progress-text text-xs text-sky-300"></span>
+                `;
+                phaseElement.appendChild(phaseSummary);
+                
+                const phaseProgressBarContainer = document.createElement('div');
+                phaseProgressBarContainer.className = 'w-full bg-slate-600 rounded-full h-2.5 my-2';
+                const phaseProgressBar = document.createElement('div');
+                phaseProgressBar.className = 'phase-progress-bar bg-sky-500 h-2.5 rounded-full';
+                phaseProgressBar.style.width = '0%';
+                phaseProgressBarContainer.appendChild(phaseProgressBar);
+                phaseElement.appendChild(phaseProgressBarContainer);
+
+                const phaseMonthlyGoal = document.createElement('p');
+                phaseMonthlyGoal.className = 'mt-2 mb-3 text-sm text-slate-300 italic';
+                phaseMonthlyGoal.textContent = `整體學習目標: ${phaseData.monthlyGoal}`;
+                phaseElement.appendChild(phaseMonthlyGoal);
+
+                let phaseTotalTasks = 0;
+                let phaseCompletedTasks = 0;
+
+                phaseData.weeks.forEach((weekData, weekIndex) => {
+                    const weekElement = document.createElement('details');
+                    weekElement.className = 'ml-4 mt-3 bg-slate-650 p-3 rounded-md shadow-inner';
+                    weekElement.open = weekIndex === 0 && phaseIndex === 0; 
+
+                    const weekSummary = document.createElement('summary');
+                    weekSummary.className = 'text-md font-semibold text-sky-300 cursor-pointer flex justify-between items-center';
+                    weekSummary.innerHTML = `
+                        <span><span class="details-marker"></span>Week ${weekData.weekNum}: ${weekData.title}</span>
+                        <span class="week-progress-text text-xs text-teal-300"></span>
+                    `;
+                    weekElement.appendChild(weekSummary);
+
+                    const weekProgressBarContainer = document.createElement('div');
+                    weekProgressBarContainer.className = 'w-full bg-slate-500 rounded-full h-2 my-1';
+                    const weekProgressBar = document.createElement('div');
+                    weekProgressBar.className = 'week-progress-bar bg-teal-500 h-2 rounded-full';
+                    weekProgressBar.style.width = '0%';
+                    weekProgressBarContainer.appendChild(weekProgressBar);
+                    weekElement.appendChild(weekProgressBarContainer);
+
+                    const weekWeeklyGoal = document.createElement('p');
+                    weekWeeklyGoal.className = 'mt-1 mb-2 text-xs text-slate-400 italic';
+                    weekWeeklyGoal.textContent = `週次小目標: ${weekData.weeklyGoal}`;
+                    weekElement.appendChild(weekWeeklyGoal);
+
+                    const daysList = document.createElement('ul');
+                    daysList.className = 'space-y-2 pl-4 mt-2';
+
+                    let weekTotalTasks = 0;
+                    let weekCompletedTasks = 0;
+
+                    weekData.days.forEach(dayData => {
+                        totalTasks++;
+                        phaseTotalTasks++;
+                        weekTotalTasks++;
+
+                        const dayItem = document.createElement('li');
+                        dayItem.className = 'text-sm border-l-2 border-slate-500 pl-3 py-1 hover:bg-slate-600 rounded-r-md transition-colors';
+                        
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = dayData.id;
+                        checkbox.className = 'mr-2 accent-sky-500 cursor-pointer';
+                        checkbox.checked = dailyProgress[dayData.id] || false;
+                        if (checkbox.checked) {
+                            completedTasks++;
+                            phaseCompletedTasks++;
+                            weekCompletedTasks++;
+                        }
+                        checkbox.addEventListener('change', (e) => {
+                            updateProgress(dayData.id, e.target.checked);
+                        });
+
+                        const label = document.createElement('label');
+                        label.htmlFor = dayData.id;
+                        label.className = 'cursor-pointer';
+                        label.innerHTML = `<strong>Day ${dayData.day} (${dayData.date}):</strong> ${dayData.task} <br>
+                                           <em class="text-xs text-slate-400 block mt-0.5">目標: ${dayData.goal} (參考: ${dayData.ref})</em>`;
+                        
+                        dayItem.appendChild(checkbox);
+                        dayItem.appendChild(label);
+                        daysList.appendChild(dayItem);
+                    });
+                    weekElement.appendChild(daysList);
+                    phaseElement.appendChild(weekElement);
+
+                    
+                    const weekProgressPercent = weekTotalTasks > 0 ? (weekCompletedTasks / weekTotalTasks) * 100 : 0;
+                    weekProgressBar.style.width = `${weekProgressPercent}%`;
+                    weekSummary.querySelector('.week-progress-text').textContent = `${Math.round(weekProgressPercent)}%`;
+                });
+                learningPlanDetailsContainer.appendChild(phaseElement);
+                
+                
+                const phaseProgressPercent = phaseTotalTasks > 0 ? (phaseCompletedTasks / phaseTotalTasks) * 100 : 0;
+                phaseProgressBar.style.width = `${phaseProgressPercent}%`;
+                phaseSummary.querySelector('.phase-progress-text').textContent = `${Math.round(phaseProgressPercent)}%`;
+            });
+
+            
+            const overallProgressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+            overallProgressBar.style.width = `${overallProgressPercent}%`;
+            overallProgressBar.textContent = `${Math.round(overallProgressPercent)}%`;
+
+            populateLearningContentTable(); 
+        }
+
+        function updateProgress(taskId, isCompleted) {
+            dailyProgress[taskId] = isCompleted;
+            localStorage.setItem('studyProgress', JSON.stringify(dailyProgress));
+            renderLearningPlan(); 
+        }
+
+        function loadProgress() {
+            const storedProgress = localStorage.getItem('studyProgress');
+            if (storedProgress) {
+                dailyProgress = JSON.parse(storedProgress);
+            }
+            const storedQuizScores = localStorage.getItem('quizScores');
+            if (storedQuizScores) {
+                quizScores = JSON.parse(storedQuizScores);
+            }
+            renderLearningPlan();
+            renderQuizzes();
+            renderQuizScoreChart();
+        }
+        
+        
+        document.getElementById('exportProgressBtn').addEventListener('click', () => {
+            const progressData = {
+                dailyProgress: dailyProgress,
+                quizScores: quizScores
+            };
+            const jsonString = JSON.stringify(progressData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'study_progress.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('importProgressInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (importedData.dailyProgress) {
+                             dailyProgress = importedData.dailyProgress;
+                        }
+                        if (importedData.quizScores) {
+                            quizScores = importedData.quizScores;
+                        }
+                        localStorage.setItem('studyProgress', JSON.stringify(dailyProgress));
+                        localStorage.setItem('quizScores', JSON.stringify(quizScores));
+                        loadProgress(); 
+                        alert('進度已成功匯入！');
+                    } catch (error) {
+                        console.error('匯入進度失敗:', error);
+                        alert('匯入進度失敗，檔案格式可能不正確。');
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = null; 
+            }
+        });
+
+
+        
+        const quizContainer = document.getElementById('quizContainer');
+        const quizAnalysisContainer = document.getElementById('quizAnalysisContainer');
+
+        function renderQuizzes() {
+            quizContainer.innerHTML = '';
+            quizAnalysisContainer.innerHTML = '';
+
+            quizzesData.forEach((quizData, quizIndex) => {
+                const quizElement = document.createElement('div');
+                quizElement.className = 'bg-slate-700 p-4 rounded-lg shadow';
+                quizElement.innerHTML = `<h4 class="text-lg font-semibold mb-2 text-sky-300">${quizData.title}</h4>
+                                         <p class="text-xs text-slate-400 mb-3">測驗範圍: ${quizData.scope}</p>`;
+                
+                const form = document.createElement('form');
+                form.id = `quizForm${quizIndex}`;
+                quizData.questions.forEach((q, qIndex) => {
+                    const qElement = document.createElement('div');
+                    qElement.className = 'mb-4';
+                    qElement.innerHTML = `<p class="font-medium mb-1">${q.q}</p>`;
+                    const optionsList = document.createElement('ul');
+                    optionsList.className = 'space-y-1';
+                    q.o.forEach((opt, optIndex) => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<label class="flex items-center space-x-2 text-sm cursor-pointer hover:text-sky-300">
+                                            <input type="radio" name="q${qIndex}" value="${optIndex}" class="accent-sky-500">
+                                            <span>${opt}</span>
+                                        </label>`;
+                        optionsList.appendChild(li);
+                    });
+                    qElement.appendChild(optionsList);
+                    form.appendChild(qElement);
+                });
+
+                const submitButton = document.createElement('button');
+                submitButton.type = 'button'; 
+                submitButton.textContent = '提交答案';
+                submitButton.className = 'mt-4 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm';
+                submitButton.addEventListener('click', () => scoreQuiz(quizIndex));
+                
+                form.appendChild(submitButton);
+                quizElement.appendChild(form);
+
+                const resultElement = document.createElement('div');
+                resultElement.id = `quizResult${quizIndex}`;
+                resultElement.className = 'mt-3 text-sm';
+                quizElement.appendChild(resultElement);
+                
+                quizContainer.appendChild(quizElement);
+
+                
+                if (quizScores[quizIndex] !== null) {
+                    displayQuizResult(quizIndex, quizScores[quizIndex], quizzesData[quizIndex].questions.length);
+                }
+            });
+        }
+
+        function scoreQuiz(quizIndex) {
+            const quizData = quizzesData[quizIndex];
+            const form = document.getElementById(`quizForm${quizIndex}`);
+            let score = 0;
+            quizData.questions.forEach((q, qIndex) => {
+                const selectedOption = form.querySelector(`input[name="q${qIndex}"]:checked`);
+                if (selectedOption && parseInt(selectedOption.value) === q.a) {
+                    score++;
+                }
+            });
+            quizScores[quizIndex] = score;
+            localStorage.setItem('quizScores', JSON.stringify(quizScores));
+            displayQuizResult(quizIndex, score, quizData.questions.length);
+            renderQuizScoreChart(); 
+        }
+
+        function displayQuizResult(quizIndex, score, totalQuestions) {
+            const resultElement = document.getElementById(`quizResult${quizIndex}`);
+            const analysisText = quizzesData[quizIndex].analysis;
+            let performanceComment = "";
+            const percentage = (score / totalQuestions) * 100;
+
+            if (percentage >= 90) performanceComment = "表現優異！";
+            else if (percentage >= 70) performanceComment = "表現良好！";
+            else if (percentage >= 50) performanceComment = "仍有進步空間。";
+            else performanceComment = "需要加強學習。";
+            
+            resultElement.innerHTML = `<p class="font-semibold text-sky-400">您的得分: ${score}/${totalQuestions} (${performanceComment})</p>
+                                       <p class="mt-1 text-slate-400">${analysisText}</p>`;
+        }
+
+        function renderQuizScoreChart() {
+            const ctx = document.getElementById('quizScoreChart').getContext('2d');
+            if (quizScoreChartInstance) {
+                quizScoreChartInstance.destroy(); 
+            }
+            quizScoreChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: quizzesData.map((q, i) => `測驗卷${i + 1}`),
+                    datasets: [{
+                        label: '測驗得分 (滿分10分)',
+                        data: quizScores.map(score => score === null ? 0 : score),
+                        backgroundColor: 'rgba(56, 189, 248, 0.6)', 
+                        borderColor: 'rgba(14, 165, 233, 1)', 
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: { 
+                                color: '#cbd5e1', 
+                                stepSize: 1
+                            },
+                            grid: { color: '#334155' } 
+                        },
+                        x: {
+                            ticks: { color: '#cbd5e1' }, 
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#cbd5e1' } 
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + ' / 10';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        
+        const learningContentTableBody = document.getElementById('learningContentTableBody');
+        const filterPhaseSelect = document.getElementById('filterPhase');
+        const filterWeekSelect = document.getElementById('filterWeek');
+        const filterStatusSelect = document.getElementById('filterStatus');
+        const tableHeaders = document.querySelectorAll('#learningContentTable th[data-sort]');
+        let currentSort = { column: 'date', order: 'asc' };
+        let allTasksFlat = [];
+
+
+        function populateFilters() {
+            const phases = [...new Set(learningPlanData.map(p => p.phase))];
+            phases.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p;
+                option.textContent = p;
+                filterPhaseSelect.appendChild(option);
+            });
+
+            const weeks = [...new Set(learningPlanData.flatMap(p => p.weeks.map(w => `Week ${w.weekNum}: ${w.title}`)))];
+             weeks.sort((a, b) => { 
+                const weekNumA = parseInt(a.match(/Week (\d+)/)[1]);
+                const weekNumB = parseInt(b.match(/Week (\d+)/)[1]);
+                if (weekNumA !== weekNumB) return weekNumA - weekNumB;
+                return a.localeCompare(b);
+            });
+            weeks.forEach(wTitle => {
+                const option = document.createElement('option');
+                option.value = wTitle;
+                option.textContent = wTitle;
+                filterWeekSelect.appendChild(option);
+            });
+        }
+        
+        function populateLearningContentTable() {
+            allTasksFlat = [];
+            learningPlanData.forEach(phaseData => {
+                phaseData.weeks.forEach(weekData => {
+                    weekData.days.forEach(dayData => {
+                        allTasksFlat.push({
+                            date: dayData.date,
+                            phase: phaseData.phase,
+                            week: `Week ${weekData.weekNum}: ${weekData.title}`,
+                            dayNum: dayData.day,
+                            task: dayData.task,
+                            goal: dayData.goal,
+                            ref: dayData.ref,
+                            id: dayData.id,
+                            status: dailyProgress[dayData.id] ? '已完成' : '未完成'
+                        });
+                    });
+                });
+            });
+            renderTableRows(allTasksFlat);
+        }
+
+        function renderTableRows(tasksToRender) {
+            learningContentTableBody.innerHTML = '';
+            
+            
+            tasksToRender.sort((a, b) => {
+                let valA = a[currentSort.column];
+                let valB = b[currentSort.column];
+
+                if (currentSort.column === 'date') {
+                    valA = new Date(valA.split('(')[0].trim()); 
+                    valB = new Date(valB.split('(')[0].trim());
+                } else if (currentSort.column === 'dayNum' || currentSort.column === 'week') {
+                     if (currentSort.column === 'week') {
+                        valA = parseInt(a.week.match(/Week (\d+)/)[1]);
+                        valB = parseInt(b.week.match(/Week (\d+)/)[1]);
+                    } else { 
+                        valA = parseInt(valA);
+                        valB = parseInt(valB);
+                    }
+                }
+
+
+                if (valA < valB) return currentSort.order === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSort.order === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            tasksToRender.forEach(task => {
+                const row = learningContentTableBody.insertRow();
+                row.className = task.status === '已完成' ? 'bg-green-900/30' : 'bg-slate-750';
+                row.innerHTML = `
+                    <td>${task.date}</td>
+                    <td>${task.phase}</td>
+                    <td>${task.week}</td>
+                    <td>${task.dayNum}</td>
+                    <td class="max-w-xs truncate" title="${task.task}">${task.task}</td>
+                    <td class="max-w-xs truncate" title="${task.goal}">${task.goal}</td>
+                    <td>${task.ref}</td>
+                    <td>
+                        <span class="${task.status === '已完成' ? 'text-green-400' : 'text-yellow-400'}">${task.status}</span>
+                    </td>
+                `;
+            });
+        }
+        
+        function filterAndRenderTable() {
+            const phaseFilter = filterPhaseSelect.value;
+            const weekFilter = filterWeekSelect.value;
+            const statusFilter = filterStatusSelect.value;
+
+            let filteredTasks = allTasksFlat.filter(task => {
+                const phaseMatch = !phaseFilter || task.phase === phaseFilter;
+                const weekMatch = !weekFilter || task.week === weekFilter;
+                const statusMatch = !statusFilter || (statusFilter === 'completed' && task.status === '已完成') || (statusFilter === 'pending' && task.status === '未完成');
+                return phaseMatch && weekMatch && statusMatch;
+            });
+            renderTableRows(filteredTasks);
+        }
+
+        tableHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const column = header.getAttribute('data-sort');
+                if (currentSort.column === column) {
+                    currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = column;
+                    currentSort.order = 'asc';
+                }
+                filterAndRenderTable(); 
+            });
+        });
+        
+        filterPhaseSelect.addEventListener('change', filterAndRenderTable);
+        filterWeekSelect.addEventListener('change', filterAndRenderTable);
+        filterStatusSelect.addEventListener('change', filterAndRenderTable);
+
+        
+        document.getElementById('exportCsvBtn').addEventListener('click', () => {
+            let csvContent = "data:text/csv;charset=utf-8,日期,階段,週次,天次,學習任務,學習目標,參考資料/連結,進度\n";
+            const rowsToExport = Array.from(learningContentTableBody.querySelectorAll('tr'));
+            
+            rowsToExport.forEach(row => {
+                const cells = Array.from(row.querySelectorAll('td'));
+                const rowData = cells.map(cell => `"${cell.textContent.replace(/"/g, '""')}"`).join(',');
+                csvContent += rowData + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "自主學習計畫內容與進度.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProgress(); 
+            populateFilters(); 
+            populateLearningContentTable(); 
+        });
+
+    </script>
+</body>
+</html>
