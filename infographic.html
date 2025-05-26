@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探究COVID-19 Mpro：自主學習計畫資訊圖表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Default max-width */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px; /* Max height */
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .chart-container {
+                height: 350px;
+                 max-width: 500px; /* Adjusted for md screens */
+            }
+        }
+        @media (min-width: 1024px) { /* lg breakpoint */
+            .chart-container {
+                height: 400px;
+                max-width: 600px; /* Max width for larger screens */
+            }
+        }
+        .sticky-nav {
+            position: -webkit-sticky; /* Safari */
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .section-title::before {
+            content: '';
+            display: block;
+            height: 70px; /* Adjust to match nav height + some padding */
+            margin-top: -70px;
+            visibility: hidden;
+        }
+        .stat-card {
+            background-color: #FFFAF0; /* FloralWhite, part of a vibrant palette */
+            border-left: 5px solid #FF8C00; /* DarkOrange accent */
+        }
+        .flowchart-step {
+            border: 2px solid #FFD700; /* Gold */
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+        .flowchart-arrow {
+            font-size: 2rem;
+            color: #FF8C00; /* DarkOrange */
+        }
+        .kpi-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        /* Placeholder Comments */
+        /* */
+        /* */
+        /* <!-- Visualization & Content Choices: 
+            - 計畫總時程 (4.5個月): Single Big Number. Goal: Inform. Method: HTML/Tailwind.
+            - 總階段數 (5): Single Big Number. Goal: Inform. Method: HTML/Tailwind.
+            - 各階段時長分布: Donut Chart (Chart.js Canvas). Goal: Compare. Data: Phase durations. Justification: Shows proportion of time per phase.
+            - 核心知識主題: Bar Chart (Chart.js Canvas) for relative emphasis/time. Goal: Compare. Data: Estimated focus on Virology, Mpro Structure, Drug Dev. Justification: Compares focus areas.
+            - 關鍵技能 (PDB, PyMOL, AutoDock Vina): HTML/Tailwind styled cards with Unicode icons. Goal: Inform. Justification: Visually distinct skill highlights.
+            - 虛擬篩選實作流程: HTML/Tailwind diagram (flexbox/grid for steps, Unicode arrows). Goal: Organize. Justification: Shows process flow clearly without SVG/Mermaid.
+            - 預期學習成效: Styled HTML list. Goal: Inform. Justification: Clear textual presentation.
+            - 評量方式: HTML/Tailwind text. Goal: Inform.
+            - All Chart.js instances will have label wrapping and custom tooltips. NO SVG/Mermaid used. --> */
+        /* */
+    </style>
+</head>
+<body class="bg-slate-100 text-gray-800">
+
+    <nav class="sticky-nav bg-white shadow-lg py-3">
+        <div class="container mx-auto px-4">
+            <ul class="flex flex-wrap justify-center space-x-4 md:space-x-6">
+                <li><a href="#section1" class="text-orange-600 hover:text-orange-800 font-semibold transition-colors">計畫總覽</a></li>
+                <li><a href="#section2" class="text-orange-600 hover:text-orange-800 font-semibold transition-colors">核心知識</a></li>
+                <li><a href="#section3" class="text-orange-600 hover:text-orange-800 font-semibold transition-colors">技能培養</a></li>
+                <li><a href="#section4" class="text-orange-600 hover:text-orange-800 font-semibold transition-colors">實作與成果</a></li>
+                <li><a href="#section5" class="text-orange-600 hover:text-orange-800 font-semibold transition-colors">資源與評量</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <header class="text-center mb-12 pt-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-orange-600">自主學習計畫：COVID-19 Mpro 抑制劑探究</h1>
+            <p class="text-xl text-gray-600 mt-3">從活性中心結構到虛擬藥物開發的探索之旅</p>
+        </header>
+
+        <section id="section1" class="section-title mb-16">
+            <h2 class="text-3xl font-semibold text-center mb-8 text-teal-700">計畫總覽 (Project Overview)</h2>
+            <p class="text-center text-gray-700 mb-10 max-w-2xl mx-auto">本自主學習計畫旨在深入探究COVID-19冠狀病毒主蛋白酶(Mpro)的結構與功能，並實際體驗虛擬抑制劑的初步開發流程。計畫期程明確，目標清晰，旨在為未來醫學研究奠定堅實基礎。</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-xl shadow-xl text-center kpi-card">
+                    <div class="text-5xl font-bold text-orange-500 mb-2">4.5</div>
+                    <div class="text-gray-600 text-lg">個月總時程</div>
+                    <p class="text-sm text-gray-500 mt-1">2025/09/01 - 2026/01/15</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-xl text-center kpi-card">
+                    <div class="text-5xl font-bold text-yellow-500 mb-2">5</div>
+                    <div class="text-gray-600 text-lg">個主要學習階段</div>
+                    <p class="text-sm text-gray-500 mt-1">循序漸進，深度學習</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-xl text-center kpi-card">
+                    <div class="text-5xl font-bold text-pink-500 mb-2">19.5</div>
+                    <div class="text-gray-600 text-lg">週密集學習</div>
+                     <p class="text-sm text-gray-500 mt-1">理論與實作並重</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="bg-white p-6 rounded-xl shadow-xl">
+                    <h3 class="text-2xl font-semibold mb-4 text-teal-600">各階段時長分佈</h3>
+                    <p class="text-gray-600 mb-4 text-sm">計畫分為五個階段，每個階段約一個月，最後半個月用於成果彙整。此圖表展示各階段在總時程中的佔比，突顯學習重點的分配。</p>
+                    <div class="chart-container">
+                        <canvas id="phaseDurationChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-xl">
+                    <h3 class="text-2xl font-semibold mb-4 text-teal-600">總體目標</h3>
+                     <p class="text-gray-700 mb-4 text-sm">本計畫的核心目標是完成一份關於SARS-CoV-2 Mpro結構功能分析及虛擬抑制劑開發的自主學習報告，並掌握相關基礎知識與實作技能。最終成果將以一個深色模式的互動式網頁應用程式呈現，並部署於GitHub Pages，全面展示學習歷程與成果。</p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700 text-sm">
+                        <li><strong class="text-purple-600">知識建構：</strong>深入理解Mpro結構、催化機制及藥物設計原理。</li>
+                        <li><strong class="text-purple-600">技能培養：</strong>熟練操作生物資訊學資料庫與分子模擬軟體。</li>
+                        <li><strong class="text-purple-600">實作體驗：</strong>完成小規模虛擬藥物篩選流程。</li>
+                        <li><strong class="text-purple-600">科研素養：</strong>提升批判性思維、問題解決及學術表達能力。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="section2" class="section-title mb-16">
+            <h2 class="text-3xl font-semibold text-center mb-8 text-teal-700">核心知識領域 (Core Knowledge Domains)</h2>
+            <p class="text-center text-gray-700 mb-10 max-w-2xl mx-auto">本計畫涵蓋多個交叉學科的知識領域，從基礎的細胞與病毒學，到專業的蛋白質結構功能分析，再到前沿的藥物開發原理與計算模擬技術。下圖展示了各核心知識領域在計畫中的相對投入時間與重要性。</p>
+            <div class="bg-white p-6 rounded-xl shadow-xl">
+                <h3 class="text-2xl font-semibold mb-4 text-teal-600">知識領域學習重點分佈</h3>
+                <p class="text-gray-600 mb-6 text-sm">此長條圖估算了在不同核心知識領域的學習時間佔比，反映了計畫對各領域知識深度的要求。重點將放在Mpro結構功能解析以及虛擬藥物篩選的理論與實作上。</p>
+                <div class="chart-container" style="height: 400px; max-height: 500px;">
+                    <canvas id="knowledgeDomainChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="section3" class="section-title mb-16">
+            <h2 class="text-3xl font-semibold text-center mb-8 text-teal-700">關鍵技能培養 (Key Skill Development)</h2>
+            <p class="text-center text-gray-700 mb-10 max-w-2xl mx-auto">計畫著重培養現代生物醫學研究所需的關鍵計算技能。透過實際操作，學生將掌握生物資訊學資料庫查詢、分子視覺化分析及分子對接模擬等核心技術。</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-xl text-center kpi-card transform hover:scale-105">
+                    <div class="text-6xl mb-4 text-orange-500">🧬</div>
+                    <h3 class="text-xl font-semibold text-teal-600 mb-2">PDB 資料庫應用</h3>
+                    <p class="text-gray-600 text-sm">熟練檢索、下載和解析蛋白質資料庫 (PDB) 中的Mpro結構數據，理解PDB檔案格式。</p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-xl text-center kpi-card transform hover:scale-105">
+                    <div class="text-6xl mb-4 text-yellow-500">🔬</div>
+                    <h3 class="text-xl font-semibold text-teal-600 mb-2">分子視覺化 (PyMOL/ChimeraX)</h3>
+                    <p class="text-gray-600 text-sm">掌握至少一種分子視覺化軟體，展示和分析Mpro的3D結構及其與配體的相互作用。</p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-xl text-center kpi-card transform hover:scale-105">
+                    <div class="text-6xl mb-4 text-pink-500">💻</div>
+                    <h3 class="text-xl font-semibold text-teal-600 mb-2">分子對接 (AutoDock Vina)</h3>
+                    <p class="text-gray-600 text-sm">學習使用AutoDock Vina進行受體與配體的準備、參數設定、執行對接及初步結果分析。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="section4" class="section-title mb-16">
+            <h2 class="text-3xl font-semibold text-center mb-8 text-teal-700">實作流程與預期成果 (Practical Application & Expected Outcomes)</h2>
+            <p class="text-center text-gray-700 mb-10 max-w-2xl mx-auto">計畫的亮點在於虛擬抑制劑開發的實作環節。學生將遵循標準流程，從靶點準備到結果分析，完整體驗計算藥物開發的初步過程，並預期達成多方面的學習成效。</p>
+            <div class="bg-white p-6 rounded-xl shadow-xl mb-10">
+                <h3 class="text-2xl font-semibold mb-6 text-teal-600 text-center">虛擬藥物篩選實作流程</h3>
+                <div class="flex flex-col md:flex-row justify-around items-center space-y-6 md:space-y-0 md:space-x-4">
+                    <div class="flowchart-step p-4 rounded-lg text-center w-full md:w-1/5">
+                        <div class="text-3xl mb-2">①</div>
+                        <h4 class="font-semibold text-orange-600">環境準備</h4>
+                        <p class="text-xs text-gray-500">安裝ADT/Vina</p>
+                    </div>
+                    <div class="flowchart-arrow hidden md:block">➔</div>
+                    <div class="flowchart-step p-4 rounded-lg text-center w-full md:w-1/5">
+                        <div class="text-3xl mb-2">②</div>
+                        <h4 class="font-semibold text-yellow-600">受體處理</h4>
+                        <p class="text-xs text-gray-500">Mpro PDB預處理</p>
+                    </div>
+                    <div class="flowchart-arrow hidden md:block">➔</div>
+                    <div class="flowchart-step p-4 rounded-lg text-center w-full md:w-1/5">
+                        <div class="text-3xl mb-2">③</div>
+                        <h4 class="font-semibold text-pink-600">配體準備</h4>
+                        <p class="text-xs text-gray-500">小分子庫處理</p>
+                    </div>
+                     <div class="flowchart-arrow hidden md:block">➔</div>
+                    <div class="flowchart-step p-4 rounded-lg text-center w-full md:w-1/5">
+                        <div class="text-3xl mb-2">④</div>
+                        <h4 class="font-semibold text-teal-600">執行對接</h4>
+                        <p class="text-xs text-gray-500">Vina計算</p>
+                    </div>
+                     <div class="flowchart-arrow hidden md:block">➔</div>
+                    <div class="flowchart-step p-4 rounded-lg text-center w-full md:w-1/5">
+                        <div class="text-3xl mb-2">⑤</div>
+                        <h4 class="font-semibold text-purple-600">結果分析</h4>
+                        <p class="text-xs text-gray-500">視覺化與判讀</p>
+                    </div>
+                </div>
+                 <p class="text-center text-gray-600 mt-6 text-sm">此流程圖展示了虛擬藥物篩選的核心步驟，從軟體環境配置開始，依次進行靶點蛋白（受體）和候選藥物分子（配體）的準備，然後執行分子對接計算，最後對接結果進行詳細的視覺化分析和科學判讀。</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-xl">
+                <h3 class="text-2xl font-semibold mb-4 text-teal-600">預期學習成效</h3>
+                <p class="text-gray-600 mb-4 text-sm">完成此自主學習計畫後，預期在專業知識、實用技能、跨學科視野、分析思辨能力、學術成果展現、科研興趣及科學表達能力等多方面均能獲得顯著提升。</p>
+                <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-gray-700 text-sm">
+                    <li class="flex items-start"><span class="text-orange-500 mr-2 text-xl">✔</span>深化Mpro分子認知</li>
+                    <li class="flex items-start"><span class="text-orange-500 mr-2 text-xl">✔</span>掌握計算生物學工具</li>
+                    <li class="flex items-start"><span class="text-orange-500 mr-2 text-xl">✔</span>拓展跨學科視野</li>
+                    <li class="flex items-start"><span class="text-orange-500 mr-2 text-xl">✔</span>提升分析思辨能力</li>
+                    <li class="flex items-start"><span class="text-orange-500 mr-2 text-xl">✔</span>完成高品質學習報告</li>
+                    <li class="flex items-start"><span class="text-orange-500 mr-2 text-xl">✔</span>激發醫學科研興趣</li>
+                    <li class="flex items-start"><span class="text-orange-500 mr-2 text-xl">✔</span>增強科學表達能力</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="section5" class="section-title mb-16">
+            <h2 class="text-3xl font-semibold text-center mb-8 text-teal-700">學習資源與評量方式 (Learning Resources & Assessment)</h2>
+            <p class="text-center text-gray-700 mb-10 max-w-2xl mx-auto">本計畫將利用多種學習資源，包括學術文獻、教科書、線上資料庫及軟體教程。學習成效將通過階段性測驗和最終報告進行評估。</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-xl">
+                    <h3 class="text-2xl font-semibold mb-4 text-teal-600">主要學習資源</h3>
+                    <p class="text-gray-600 mb-4 text-sm">學習資源的選擇兼顧了理論深度與實用性，優先考慮中文及易獲取資源，確保學習的順暢進行。</p>
+                    <ul class="list-none space-y-3">
+                        <li class="stat-card p-3 rounded-md shadow-sm"><span class="font-semibold text-orange-700">學術論文與綜述：</span> 深入理解Mpro研究前沿。</li>
+                        <li class="stat-card p-3 rounded-md shadow-sm"><span class="font-semibold text-yellow-700">教科書與科普書籍：</span> 奠定生物學基礎。</li>
+                        <li class="stat-card p-3 rounded-md shadow-sm"><span class="font-semibold text-pink-700">生物資訊學資料庫：</span> 如RCSB PDB。</li>
+                        <li class="stat-card p-3 rounded-md shadow-sm"><span class="font-semibold text-teal-700">分子模擬軟體與教程：</span> PyMOL, ChimeraX, AutoDock Vina。</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-xl">
+                    <h3 class="text-2xl font-semibold mb-4 text-teal-600">學習評量方式</h3>
+                    <p class="text-gray-600 mb-4 text-sm">為確保學習效果，計畫包含形成性評量和總結性評量。</p>
+                    <ul class="list-none space-y-3">
+                        <li class="stat-card p-3 rounded-md shadow-sm"><span class="font-semibold text-purple-700">月度測驗卷：</span> 共4份，每份10道選擇題，檢驗階段學習成果。</li>
+                        <li class="stat-card p-3 rounded-md shadow-sm"><span class="font-semibold text-orange-700">評量結果分析：</span> 自動計分，提供趨勢圖及個性化分析評論。</li>
+                        <li class="stat-card p-3 rounded-md shadow-sm"><span class="font-semibold text-yellow-700">最終成果報告：</span> 整合所有學習內容，以互動網頁形式呈現。</li>
+                        <li class="stat-card p-3 rounded-md shadow-sm"><span class="font-semibold text-pink-700">進度追蹤與報表：</span> 內建進度追蹤，可匯出學習歷程報表。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center mt-12 py-8 border-t border-gray-300">
+            <p class="text-gray-600 text-sm">&copy; 2025 自主學習計畫成果。此資訊圖表僅為學習與展示目的而設計。</p>
+        </footer>
+
+    </div>
+
+    <script>
+        function wrapLabels(labels, maxLength) {
+            return labels.map(label => {
+                if (typeof label === 'string' && label.length > maxLength) {
+                    const words = label.split(' ');
+                    const lines = [];
+                    let currentLine = '';
+                    words.forEach(word => {
+                        if ((currentLine + ' ' + word).trim().length <= maxLength) {
+                            currentLine = (currentLine + ' ' + word).trim();
+                        } else {
+                            lines.push(currentLine);
+                            currentLine = word;
+                        }
+                    });
+                    lines.push(currentLine);
+                    return lines;
+                }
+                return label;
+            });
+        }
+
+        const commonTooltipOptions = {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) {
+                              return label.join(' ');
+                            } else {
+                              return label;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        // Energetic & Playful Palette
+        const palette = {
+            orange: '#FF8C00', // DarkOrange
+            yellow: '#FFD700', // Gold
+            pink: '#FF69B4',   // HotPink
+            teal: '#008080',   // Teal
+            purple: '#9370DB', // MediumPurple
+            lightBg: '#FFF8DC', // Cornsilk (background for charts if needed)
+            text: '#333333'
+        };
+
+        // Chart 1: Phase Duration Chart (Donut)
+        const phaseDurationCtx = document.getElementById('phaseDurationChart').getContext('2d');
+        new Chart(phaseDurationCtx, {
+            type: 'doughnut',
+            data: {
+                labels: wrapLabels(['Phase 1: 基礎知識', 'Phase 2: Mpro結構功能', 'Phase 3: 藥物與抑制劑原理', 'Phase 4: 虛擬開發實作', 'Phase 5: 總結報告'], 16),
+                datasets: [{
+                    label: '各階段時長佔比',
+                    data: [1, 1, 1, 1, 0.5], // Months
+                    backgroundColor: [
+                        palette.orange,
+                        palette.yellow,
+                        palette.pink,
+                        palette.teal,
+                        palette.purple
+                    ],
+                    borderColor: '#FFFFFF',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { 
+                            font: { size: 10 },
+                            color: palette.text,
+                             boxWidth: 15
+                        }
+                    },
+                    title: {
+                        display: false,
+                        text: '各學習階段時長分佈 (月)',
+                        color: palette.text
+                    },
+                    tooltip: commonTooltipOptions.plugins.tooltip
+                }
+            }
+        });
+
+        // Chart 2: Knowledge Domain Chart (Bar)
+        const knowledgeDomainCtx = document.getElementById('knowledgeDomainChart').getContext('2d');
+        new Chart(knowledgeDomainCtx, {
+            type: 'bar',
+            data: {
+                labels: wrapLabels(['細胞/病毒學基礎', 'Mpro結構與功能', '藥物開發原理', '酶抑制劑理論', '虛擬篩選與對接'], 16),
+                datasets: [{
+                    label: '學習重點投入估算 (相對時長)',
+                    data: [20, 30, 20, 15, 35], // Relative effort/time
+                    backgroundColor: [
+                        palette.orange + 'B3', // with alpha
+                        palette.yellow + 'B3',
+                        palette.pink + 'B3',
+                        palette.teal + 'B3',
+                        palette.purple + 'B3'
+                    ],
+                    borderColor: [
+                        palette.orange,
+                        palette.yellow,
+                        palette.pink,
+                        palette.teal,
+                        palette.purple
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y', // Horizontal bar chart
+                scales: {
+                    y: {
+                        ticks: { color: palette.text, font: {size: 10} },
+                        grid: { display: false }
+                    },
+                    x: {
+                        ticks: { color: palette.text },
+                        grid: { color: '#DDDDDD' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: false,
+                        text: '核心知識領域學習重點',
+                        color: palette.text
+                    },
+                    tooltip: commonTooltipOptions.plugins.tooltip
+                }
+            }
+        });
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
